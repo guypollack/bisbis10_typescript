@@ -1,6 +1,7 @@
 import express, { Application } from "express";
 import dotenv from "dotenv";
-import routes from "./controllers/demoController";
+import demoRoutes from "./controllers/demoController";
+import routes from "./controllers/bisbis10Controller";
 import client from "./db/db";
 
 //For env File
@@ -10,6 +11,7 @@ const app: Application = express();
 const port = process.env.PORT || 8000;
 
 app.use("/", routes);
+app.use("/demo", demoRoutes);
 
 app.listen(port, () => {
   console.log(`Server is On at http://localhost:${port}`);
