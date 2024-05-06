@@ -1,6 +1,7 @@
 import { Request, Response, Router } from "express";
 import client from "../db/db";
 import { QueryResult } from "pg";
+import { Restaurant } from "../types/types";
 
 const router = Router();
 
@@ -11,7 +12,7 @@ router.get("/", (req: Request, res: Response) => {
 router.get("/restaurants", async (req: Request, res: Response) => {
   const { cuisine } = req.query;
 
-  let result: QueryResult;
+  let result: QueryResult<Omit<Restaurant, "dishes">>;
 
   if (cuisine) {
     result = await client.query(
