@@ -2,8 +2,8 @@ CREATE TABLE restaurants (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   "averageRating" FLOAT,
-  "isKosher" BOOLEAN,
-  cuisines VARCHAR(255)[],
+  "isKosher" BOOLEAN NOT NULL,
+  cuisines VARCHAR(255)[] NOT NULL,
   dishes JSON[]
 );
 
