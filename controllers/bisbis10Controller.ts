@@ -31,12 +31,22 @@ router.get("/restaurants", async (req: Request, res: Response) => {
 router.get("/restaurants/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
 
-  const result: QueryResult<Restaurant> = await client.query(
-    "SELECT * FROM restaurants WHERE id = $1",
-    [id]
-  );
+  if (
+    isNaN(Number.parseInt(id)) ||
+    Number.parseInt(id) !== Number.parseFloat(id)
+  ) {
+    return res
+      .status(400)
+      .send("Invalid request: restaurant ID must be an integer");
+  }
 
-  return res.status(200).send(result.rows);
+  try {
+    const result: QueryResult<Restaurant> = await client.query(
+      "SELECT * FROM restaurants WHERE id = $1",
+      [id]
+    );
+    return res.status(200).send(result.rows);
+  } catch (err) {}
 });
 
 export default router;
