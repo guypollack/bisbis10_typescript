@@ -1,13 +1,13 @@
 CREATE TABLE restaurants (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
-  average_rating FLOAT,
-  is_kosher BOOLEAN,
+  "averageRating" FLOAT,
+  "isKosher" BOOLEAN,
   cuisines VARCHAR(255)[],
   dishes JSON[]
 );
 
-INSERT INTO restaurants (name, average_rating, is_kosher, cuisines, dishes)
+INSERT INTO restaurants (name, "averageRating", "isKosher", cuisines, dishes)
 VALUES (
   'Taizu', 
   4.83, 
@@ -18,9 +18,9 @@ VALUES (
 
 CREATE TABLE ratings (
   id SERIAL PRIMARY KEY,
-  restaurant_id INTEGER NOT NULL REFERENCES restaurants(id),
+  "restaurantId" INTEGER NOT NULL REFERENCES restaurants(id),
   rating FLOAT NOT NULL
 );
 
-INSERT INTO ratings (restaurant_id, rating)
+INSERT INTO ratings ("restaurantId", rating)
 VALUES (1, 4.83);
