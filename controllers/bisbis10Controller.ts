@@ -15,10 +15,11 @@ router.get("/restaurants", async (req: Request, res: Response) => {
   let result: QueryResult<Omit<Restaurant, "dishes">>;
 
   if (cuisine) {
-    result = await client.query(
-      'SELECT id, name, "averageRating", "isKosher", cuisines FROM restaurants WHERE $1 = ANY(cuisines);',
-      [cuisine as string]
-    );
+    const query: QueryConfig = {
+      text: 'SELECT id, name, "averageRating", "isKosher", cuisines FROM restaurants WHERE $1 = ANY(cuisines);',
+      values: [cuisine],
+    };
+    result = await client.query(query);
   } else {
     result = await client.query(
       'SELECT id, name, "averageRating", "isKosher", cuisines FROM restaurants;'
@@ -41,10 +42,11 @@ router.get("/restaurants/:id", async (req: Request, res: Response) => {
   }
 
   try {
-    const result: QueryResult<Restaurant> = await client.query(
-      "SELECT * FROM restaurants WHERE id = $1",
-      [id]
-    );
+    const query: QueryConfig = {
+      text: "SELECT * FROM restaurants WHERE id = $1",
+      values: [id],
+    };
+    const result: QueryResult<Restaurant> = await client.query(query);
     return res.status(200).send(result.rows);
   } catch (err) {}
 });
