@@ -19,7 +19,7 @@ VALUES (
 CREATE TABLE ratings (
   id SERIAL PRIMARY KEY,
   "restaurantId" INTEGER NOT NULL REFERENCES restaurants(id),
-  rating FLOAT NOT NULL
+  rating FLOAT NOT NULL CHECK (rating >= 0 AND rating <= 5)
 );
 
 INSERT INTO ratings ("restaurantId", rating)
