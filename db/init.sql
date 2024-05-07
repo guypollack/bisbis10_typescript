@@ -4,7 +4,7 @@ CREATE TABLE restaurants (
   "averageRating" FLOAT,
   "isKosher" BOOLEAN NOT NULL,
   cuisines VARCHAR(255)[] NOT NULL,
-  dishes JSON[],
+  dishes JSON[] NOT NULL DEFAULT ARRAY[]::JSON[],
   "nextDishId" INTEGER DEFAULT 1
 );
 
