@@ -197,8 +197,7 @@ router.post(
         text: `
         INSERT INTO restaurants (name, "isKosher", cuisines)
         VALUES ($1, $2, $3)
-        ;
-      `,
+        ;`,
         values: [name, isKosher, cuisines],
       };
 
@@ -238,7 +237,7 @@ router.put(
         UPDATE restaurants
         SET ${setClauseComponents.join(", ")}
         WHERE id = $1
-      ;`,
+        ;`,
         values: [id, ...setClauseParameters],
       };
 
