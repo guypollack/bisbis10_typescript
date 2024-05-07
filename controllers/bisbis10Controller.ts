@@ -52,7 +52,6 @@ const validateRestaurantReqBodyMiddleware = async (
 
   if (req.method === "POST") {
     // Check for missing required properties in request body
-
     const missingPropertiesInRequest = allowedProperties.filter(
       (property) =>
         !Object.keys(req.body).includes(property) ||
