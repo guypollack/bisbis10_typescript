@@ -38,7 +38,7 @@ router.get("/restaurants/:id", async (req: Request, res: Response) => {
   ) {
     return res
       .status(400)
-      .send("Bad Request. restaurant ID must be an integer");
+      .send("Bad Request. id must be an integer");
   }
 
   try {
@@ -161,7 +161,7 @@ router.put("/restaurants/:id", async (req: Request, res: Response) => {
   ) {
     return res
       .status(400)
-      .send("Bad Request. restaurant ID must be an integer");
+      .send("Bad Request. id must be an integer");
   }
 
   const allowedProperties = ["name", "isKosher", "cuisines"];
