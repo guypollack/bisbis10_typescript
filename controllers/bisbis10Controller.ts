@@ -449,4 +449,64 @@ router.post(
   }
 );
 
+router.post(
+  "/restaurants/:id/dishes",
+  [validateIdParamMiddleware, validateDishReqBodyMiddleware],
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const {
+      name,
+      description,
+      price,
+    }: Pick<Dish, "name" | "description" | "price"> = req.body;
+
+    try {
+      const getDishesQuery: QueryConfig = {
+        text: `
+          SELECT dishes
+          FROM restaurants
+          WHERE id = $1
+        ;`,
+        values: [id],
+      };
+      const result: QueryResult<Restaurant> = await client.query(
+        getDishesQuery
+      );
+      const dishes = result.rows[0].dishes;
+      const currentDishes = dishes === null ? [] : dishes.slice();
+
+      const lastIdString =
+        currentDishes.length === 0
+          ? "0"
+          : currentDishes[currentDishes.length - 1].id;
+      const nextIdString = (parseInt(lastIdString) + 1).toString();
+
+      const newDish = {
+        id: nextIdString,
+        name,
+        description,
+        price: roundToDp(price, 2),
+      };
+
+      const updateDishesQuery: QueryConfig = {
+        text: `
+          UPDATE restaurants
+          SET dishes = $1
+          WHERE id = $2
+          ;`,
+        values: [[...currentDishes, newDish], id],
+      };
+
+      await client.query(updateDishesQuery);
+    } catch (err) {
+      return res
+        .status(500)
+        .send("Internal Server Error. Unable to add new dish");
+    }
+
+    return res.status(201).send();
+  }
+);
+
 export default router;
