@@ -5,7 +5,7 @@ import { Restaurant } from "../types/types";
 
 const router = Router();
 
-export const validateRestaurantIdMiddleware = async (
+const validateRestaurantIdMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
