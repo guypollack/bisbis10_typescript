@@ -262,6 +262,56 @@ const validateDishReqBodyMiddleware = async (
   next();
 };
 
+const validateDishIdParamMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { id, dishId } = req.params;
+
+  if (
+    isNaN(Number.parseInt(dishId)) ||
+    Number.parseInt(dishId) !== Number.parseFloat(dishId)
+  ) {
+    return res.status(400).send("Bad Request. dishId must be an integer");
+  }
+
+  try {
+    const getDishesQuery: QueryConfig = {
+      text: `
+        SELECT dishes
+        FROM restaurants
+        WHERE id = $1
+      ;`,
+      values: [id],
+    };
+    const result: QueryResult<Restaurant> = await client.query(getDishesQuery);
+    const dishes = result.rows[0].dishes;
+
+    if (dishes === null || dishes.length === 0) {
+      return res
+        .status(404)
+        .send(
+          "The dish with the specified dishId was not found at the restaurant with the specified id"
+        );
+    }
+
+    const dishIndex = dishes.findIndex((dish) => dish.id === dishId);
+
+    if (dishIndex === -1) {
+      return res
+        .status(404)
+        .send(
+          "The dish with the specified dishId was not found at the restaurant with the specified id"
+        );
+    } else {
+      req.body.dishIndex = dishIndex;
+    }
+  } catch (err) {}
+
+  next();
+};
+
 router.get("/", (req: Request, res: Response) => {
   res.send("Welcome to BISBIS10 Server");
 });
