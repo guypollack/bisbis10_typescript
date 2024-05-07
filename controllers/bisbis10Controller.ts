@@ -144,14 +144,21 @@ router.get("/restaurants", async (req: Request, res: Response) => {
 
   if (cuisine) {
     const query: QueryConfig = {
-      text: 'SELECT id, name, "averageRating", "isKosher", cuisines FROM restaurants WHERE $1 = ANY(cuisines);',
+      text: `
+        SELECT id, name, "averageRating", "isKosher", cuisines 
+        FROM restaurants 
+        WHERE $1 = ANY(cuisines)
+        ORDER BY id ASC
+        ;`,
       values: [cuisine],
     };
     result = await client.query(query);
   } else {
-    result = await client.query(
-      'SELECT id, name, "averageRating", "isKosher", cuisines FROM restaurants;'
-    );
+    result = await client.query(`
+      SELECT id, name, "averageRating", "isKosher", cuisines 
+      FROM restaurants
+      ORDER BY id ASC
+      ;`);
   }
 
   return res.status(200).send(result.rows);
