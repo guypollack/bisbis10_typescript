@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import client from "../db/db";
-import { QueryResult } from "pg";
+import { QueryConfig, QueryResult } from "pg";
 import { Restaurant } from "../types/types";
 
 const router = Router();
@@ -47,6 +47,60 @@ router.get("/restaurants/:id", async (req: Request, res: Response) => {
     );
     return res.status(200).send(result.rows);
   } catch (err) {}
+});
+
+router.post("/restaurants", async (req: Request, res: Response) => {
+  const {
+    name,
+    isKosher,
+    cuisines,
+  }: Pick<Restaurant, "name" | "isKosher" | "cuisines"> = req.body;
+
+  if (name === undefined) {
+    return res.status(400).send("Invalid request: missing property 'name'");
+  }
+
+  if (typeof name !== "string") {
+    return res.status(400).send("Invalid request: name must be a string");
+  }
+
+  if (isKosher === undefined) {
+    return res.status(400).send("Invalid request: missing property 'isKosher'");
+  }
+
+  if (typeof isKosher !== "boolean") {
+    return res.status(400).send("Invalid request: isKosher must be a boolean");
+  }
+
+  if (cuisines === undefined) {
+    return res.status(400).send("Invalid request: missing property 'cuisines'");
+  }
+
+  if (
+    !(
+      Array.isArray(cuisines) &&
+      cuisines.every((elem) => typeof elem === "string")
+    )
+  ) {
+    return res
+      .status(400)
+      .send("Invalid request: cuisines must be an array of strings");
+  }
+
+  try {
+    const query: QueryConfig = {
+      text: `
+        INSERT INTO restaurants (name, "isKosher", cuisines)
+        VALUES ($1, $2, $3)
+        ;
+      `,
+      values: [name, isKosher, cuisines],
+    };
+
+    client.query(query);
+  } catch (err) {}
+
+  return res.status(201).send();
 });
 
 export default router;
