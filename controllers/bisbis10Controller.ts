@@ -60,32 +60,58 @@ router.post("/restaurants", async (req: Request, res: Response) => {
 
   const requiredProperties = ["name", "isKosher", "cuisines"];
 
-  const missingProperties = requiredProperties.filter(
+  // Check for missing required properties in request body
+  const missingPropertiesInRequest = requiredProperties.filter(
     (property) =>
       !Object.keys(req.body).includes(property) ||
       req.body[property] === undefined
   );
 
-  const forbiddenProperties = ["id", "averageRating", "dishes"].filter(
-    (property) => Object.keys(req.body).includes(property)
-  );
-
-  const unrecognizedProperties = Object.keys(req.body).filter(
-    (property) =>
-      !requiredProperties.includes(property) &&
-      !forbiddenProperties.includes(property)
-  );
-
-  if (missingProperties.length > 0) {
+  if (missingPropertiesInRequest.length > 0) {
     return res
       .status(400)
       .send(
-        `Bad request. Required properties are missing: ${missingProperties.join(
+        `Bad request. Required properties are missing: ${missingPropertiesInRequest.join(
           ", "
         )}`
       );
   }
 
+  // Check for not allowed properties being sent in request body
+  const forbiddenProperties = ["id", "averageRating", "dishes"];
+
+  const forbiddenPropertiesInRequest = forbiddenProperties.filter((property) =>
+    Object.keys(req.body).includes(property)
+  );
+
+  if (forbiddenPropertiesInRequest.length > 0) {
+    return res
+      .status(422)
+      .send(
+        `Unprocessable Entity. The following properties cannot be included in the creation request: ${forbiddenPropertiesInRequest.join(
+          ", "
+        )}`
+      );
+  }
+
+  // Check for unrecognized properties being sent in request body
+  const unrecognizedPropertiesInRequest = Object.keys(req.body).filter(
+    (property) =>
+      !requiredProperties.includes(property) &&
+      !forbiddenProperties.includes(property)
+  );
+
+  if (unrecognizedPropertiesInRequest.length > 0) {
+    return res
+      .status(400)
+      .send(
+        `Bad Request. Unrecognized properties in request: ${unrecognizedPropertiesInRequest.join(
+          ", "
+        )}`
+      );
+  }
+
+  // Check that all data types of columns to be added are correct
   if (typeof name !== "string") {
     return res.status(400).send("Bad Request. name must be a string");
   }
@@ -103,26 +129,6 @@ router.post("/restaurants", async (req: Request, res: Response) => {
     return res
       .status(400)
       .send("Bad Request. cuisines must be an array of strings");
-  }
-
-  if (unrecognizedProperties.length > 0) {
-    return res
-      .status(400)
-      .send(
-        `Bad Request. Unrecognized properties in request: ${unrecognizedProperties.join(
-          ", "
-        )}`
-      );
-  }
-
-  if (forbiddenProperties.length > 0) {
-    return res
-      .status(422)
-      .send(
-        `Unprocessable Entity. The following properties cannot be included in the creation request: ${forbiddenProperties.join(
-          ", "
-        )}`
-      );
   }
 
   try {
