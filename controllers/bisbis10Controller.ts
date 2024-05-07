@@ -35,6 +35,104 @@ const validateRestaurantIdMiddleware = async (
   next();
 };
 
+const validateRestaurantRequestBodyMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const {
+    name,
+    isKosher,
+    cuisines,
+  }: Pick<Restaurant, "name" | "isKosher" | "cuisines"> = req.body;
+
+  const allowedProperties = ["name", "isKosher", "cuisines"];
+
+  if (req.method === "POST") {
+    // Check for missing required properties in request body
+
+    const missingPropertiesInRequest = allowedProperties.filter(
+      (property) =>
+        !Object.keys(req.body).includes(property) ||
+        req.body[property] === undefined
+    );
+
+    if (missingPropertiesInRequest.length > 0) {
+      return res
+        .status(400)
+        .send(
+          `Bad Request. Required properties are missing: ${missingPropertiesInRequest.join(
+            ", "
+          )}`
+        );
+    }
+  }
+
+  // Check for not allowed properties being sent in request body
+  const forbiddenProperties = ["id", "averageRating", "dishes"];
+
+  const forbiddenPropertiesInRequest = forbiddenProperties.filter((property) =>
+    Object.keys(req.body).includes(property)
+  );
+
+  if (forbiddenPropertiesInRequest.length > 0) {
+    const requestType =
+      req.method === "POST"
+        ? "creation request"
+        : req.method === "PUT"
+        ? "update request"
+        : "request";
+
+    return res
+      .status(422)
+      .send(
+        `Unprocessable Entity. The following properties cannot be included in the ${requestType}: ${forbiddenPropertiesInRequest.join(
+          ", "
+        )}`
+      );
+  }
+
+  // Check for unrecognized properties being sent in request body
+  const unrecognizedPropertiesInRequest = Object.keys(req.body).filter(
+    (property) =>
+      !allowedProperties.includes(property) &&
+      !forbiddenProperties.includes(property)
+  );
+
+  if (unrecognizedPropertiesInRequest.length > 0) {
+    return res
+      .status(400)
+      .send(
+        `Bad Request. Unrecognized properties in request: ${unrecognizedPropertiesInRequest.join(
+          ", "
+        )}`
+      );
+  }
+
+  // Check that all data types of columns to be updated are correct
+  if (name !== undefined && typeof name !== "string") {
+    return res.status(400).send("Bad Request. name must be a string");
+  }
+
+  if (isKosher !== undefined && typeof isKosher !== "boolean") {
+    return res.status(400).send("Bad Request. isKosher must be a boolean");
+  }
+
+  if (
+    cuisines !== undefined &&
+    !(
+      Array.isArray(cuisines) &&
+      cuisines.every((elem) => typeof elem === "string")
+    )
+  ) {
+    return res
+      .status(400)
+      .send("Bad Request. cuisines must be an array of strings");
+  }
+
+  next();
+};
+
 router.get("/", (req: Request, res: Response) => {
   res.send("Welcome to BISBIS10 Server");
 });
@@ -77,171 +175,41 @@ router.get(
   }
 );
 
-router.post("/restaurants", async (req: Request, res: Response) => {
-  const {
-    name,
-    isKosher,
-    cuisines,
-  }: Pick<Restaurant, "name" | "isKosher" | "cuisines"> = req.body;
-
-  const requiredProperties = ["name", "isKosher", "cuisines"];
-
-  // Check for missing required properties in request body
-  const missingPropertiesInRequest = requiredProperties.filter(
-    (property) =>
-      !Object.keys(req.body).includes(property) ||
-      req.body[property] === undefined
-  );
-
-  if (missingPropertiesInRequest.length > 0) {
-    return res
-      .status(400)
-      .send(
-        `Bad Request. Required properties are missing: ${missingPropertiesInRequest.join(
-          ", "
-        )}`
-      );
-  }
-
-  // Check for not allowed properties being sent in request body
-  const forbiddenProperties = ["id", "averageRating", "dishes"];
-
-  const forbiddenPropertiesInRequest = forbiddenProperties.filter((property) =>
-    Object.keys(req.body).includes(property)
-  );
-
-  if (forbiddenPropertiesInRequest.length > 0) {
-    return res
-      .status(422)
-      .send(
-        `Unprocessable Entity. The following properties cannot be included in the creation request: ${forbiddenPropertiesInRequest.join(
-          ", "
-        )}`
-      );
-  }
-
-  // Check for unrecognized properties being sent in request body
-  const unrecognizedPropertiesInRequest = Object.keys(req.body).filter(
-    (property) =>
-      !requiredProperties.includes(property) &&
-      !forbiddenProperties.includes(property)
-  );
-
-  if (unrecognizedPropertiesInRequest.length > 0) {
-    return res
-      .status(400)
-      .send(
-        `Bad Request. Unrecognized properties in request: ${unrecognizedPropertiesInRequest.join(
-          ", "
-        )}`
-      );
-  }
-
-  // Check that all data types of columns to be added are correct
-  if (typeof name !== "string") {
-    return res.status(400).send("Bad Request. name must be a string");
-  }
-
-  if (typeof isKosher !== "boolean") {
-    return res.status(400).send("Bad Request. isKosher must be a boolean");
-  }
-
-  if (
-    !(
-      Array.isArray(cuisines) &&
-      cuisines.every((elem) => typeof elem === "string")
-    )
-  ) {
-    return res
-      .status(400)
-      .send("Bad Request. cuisines must be an array of strings");
-  }
-
-  try {
-    const query: QueryConfig = {
-      text: `
-        INSERT INTO restaurants (name, "isKosher", cuisines)
-        VALUES ($1, $2, $3)
-        ;
-      `,
-      values: [name, isKosher, cuisines],
-    };
-
-    await client.query(query);
-  } catch (err) {}
-
-  return res.status(201).send();
-});
-
-router.put(
-  "/restaurants/:id",
-  [validateRestaurantIdMiddleware],
+router.post(
+  "/restaurants",
+  [validateRestaurantRequestBodyMiddleware],
   async (req: Request, res: Response) => {
-    const { id } = req.params;
     const {
       name,
       isKosher,
       cuisines,
     }: Pick<Restaurant, "name" | "isKosher" | "cuisines"> = req.body;
 
+    try {
+      const query: QueryConfig = {
+        text: `
+        INSERT INTO restaurants (name, "isKosher", cuisines)
+        VALUES ($1, $2, $3)
+        ;
+      `,
+        values: [name, isKosher, cuisines],
+      };
+
+      await client.query(query);
+    } catch (err) {}
+
+    return res.status(201).send();
+  }
+);
+
+router.put(
+  "/restaurants/:id",
+  [validateRestaurantIdMiddleware, validateRestaurantRequestBodyMiddleware],
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
     const allowedProperties = ["name", "isKosher", "cuisines"];
 
-    // Check for not allowed properties being sent in request body
-    const forbiddenProperties = ["id", "averageRating", "dishes"];
-
-    const forbiddenPropertiesInRequest = forbiddenProperties.filter(
-      (property) => Object.keys(req.body).includes(property)
-    );
-
-    if (forbiddenPropertiesInRequest.length > 0) {
-      return res
-        .status(422)
-        .send(
-          `Unprocessable Entity. The following properties cannot be updated: ${forbiddenPropertiesInRequest.join(
-            ", "
-          )}`
-        );
-    }
-
-    // Check for unrecognized properties being sent in request body
-    const unrecognizedPropertiesInRequest = Object.keys(req.body).filter(
-      (property) =>
-        !allowedProperties.includes(property) &&
-        !forbiddenProperties.includes(property)
-    );
-
-    if (unrecognizedPropertiesInRequest.length > 0) {
-      return res
-        .status(400)
-        .send(
-          `Bad Request. Unrecognized properties in request: ${unrecognizedPropertiesInRequest.join(
-            ", "
-          )}`
-        );
-    }
-
-    // Check that all data types of columns to be updated are correct
-    if (name !== undefined && typeof name !== "string") {
-      return res.status(400).send("Bad Request. name must be a string");
-    }
-
-    if (isKosher !== undefined && typeof isKosher !== "boolean") {
-      return res.status(400).send("Bad Request. isKosher must be a boolean");
-    }
-
-    if (
-      cuisines !== undefined &&
-      !(
-        Array.isArray(cuisines) &&
-        cuisines.every((elem) => typeof elem === "string")
-      )
-    ) {
-      return res
-        .status(400)
-        .send("Bad Request. cuisines must be an array of strings");
-    }
-
-    // Compose update query
     const columnsToUpdate = allowedProperties.filter((property) =>
       Object.keys(req.body).includes(property)
     );
