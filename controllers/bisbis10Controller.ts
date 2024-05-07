@@ -162,7 +162,7 @@ const validateIdInReqBodyMiddleware = async (
     if (checkExistenceResponse.rowCount === 0) {
       return res
         .status(404)
-        .send("The restaurant with the specified id was not found");
+        .send("The restaurant with the specified restaurantId was not found");
     }
   } catch (err) {}
 
