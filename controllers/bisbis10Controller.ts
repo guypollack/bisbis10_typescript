@@ -514,23 +514,19 @@ router.post(
     try {
       const getDishesQuery: QueryConfig = {
         text: `
-          SELECT dishes
+          SELECT dishes, "nextDishId"
           FROM restaurants
           WHERE id = $1
           ;`,
         values: [id],
       };
-      const result: QueryResult<Restaurant> = await client.query(
-        getDishesQuery
-      );
+      const result: QueryResult<Pick<Restaurant, "dishes" | "nextDishId">> =
+        await client.query(getDishesQuery);
       const dishes = result.rows[0].dishes;
       const currentDishes = dishes === null ? [] : dishes.slice();
 
-      const lastIdString =
-        currentDishes.length === 0
-          ? "0"
-          : currentDishes[currentDishes.length - 1].id;
-      const nextIdString = (parseInt(lastIdString) + 1).toString();
+      const nextDishId = result.rows[0].nextDishId;
+      const nextIdString = nextDishId.toString();
 
       const newDish = {
         id: nextIdString,
@@ -542,10 +538,10 @@ router.post(
       const updateDishesQuery: QueryConfig = {
         text: `
           UPDATE restaurants
-          SET dishes = $1
-          WHERE id = $2
+          SET dishes = $1, "nextDishId" = $2
+          WHERE id = $3
           ;`,
-        values: [[...currentDishes, newDish], id],
+        values: [[...currentDishes, newDish], nextDishId + 1, id],
       };
 
       await client.query(updateDishesQuery);
