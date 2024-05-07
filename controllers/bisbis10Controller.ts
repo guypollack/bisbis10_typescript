@@ -324,8 +324,8 @@ router.get("/restaurants", async (req: Request, res: Response) => {
   if (cuisine) {
     const query: QueryConfig = {
       text: `
-        SELECT id, name, ROUND("averageRating"::numeric, 2), "isKosher", cuisines 
-        FROM restaurants 
+        SELECT id, name, ROUND("averageRating"::numeric, 2), "isKosher", cuisines
+        FROM restaurants
         WHERE $1 = ANY(cuisines)
         ORDER BY id ASC
         ;`,
@@ -334,7 +334,7 @@ router.get("/restaurants", async (req: Request, res: Response) => {
     result = await client.query(query);
   } else {
     result = await client.query(`
-      SELECT id, name, ROUND("averageRating"::numeric, 2), "isKosher", cuisines 
+      SELECT id, name, ROUND("averageRating"::numeric, 2), "isKosher", cuisines
       FROM restaurants
       ORDER BY id ASC
       ;`);
@@ -352,8 +352,8 @@ router.get(
     try {
       const query: QueryConfig = {
         text: `
-          SELECT id, name, ROUND("averageRating"::numeric, 2), "isKosher", cuisines, dishes 
-          FROM restaurants 
+          SELECT id, name, ROUND("averageRating"::numeric, 2), "isKosher", cuisines, dishes
+          FROM restaurants
           WHERE id = $1
           ;`,
         values: [id],
