@@ -5,7 +5,7 @@ import { Restaurant } from "../types/types";
 
 const router = Router();
 
-const validateRestaurantIdMiddleware = async (
+const validateIdParamMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -35,7 +35,7 @@ const validateRestaurantIdMiddleware = async (
   next();
 };
 
-const validateRestaurantRequestBodyMiddleware = async (
+const validateRestaurantReqBodyMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -166,7 +166,7 @@ router.get("/restaurants", async (req: Request, res: Response) => {
 
 router.get(
   "/restaurants/:id",
-  [validateRestaurantIdMiddleware],
+  [validateIdParamMiddleware],
   async (req: Request, res: Response) => {
     const { id } = req.params;
 
@@ -184,7 +184,7 @@ router.get(
 
 router.post(
   "/restaurants",
-  [validateRestaurantRequestBodyMiddleware],
+  [validateRestaurantReqBodyMiddleware],
   async (req: Request, res: Response) => {
     const {
       name,
@@ -210,7 +210,7 @@ router.post(
 
 router.put(
   "/restaurants/:id",
-  [validateRestaurantIdMiddleware, validateRestaurantRequestBodyMiddleware],
+  [validateIdParamMiddleware, validateRestaurantReqBodyMiddleware],
   async (req: Request, res: Response) => {
     const { id } = req.params;
 
@@ -250,7 +250,7 @@ router.put(
 
 router.delete(
   "/restaurants/:id",
-  [validateRestaurantIdMiddleware],
+  [validateIdParamMiddleware],
   async (req: Request, res: Response) => {
     const { id } = req.params;
 
