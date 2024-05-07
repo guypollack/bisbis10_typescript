@@ -599,4 +599,27 @@ router.delete(
   }
 );
 
+router.get(
+  "/restaurants/:id/dishes",
+  [validateIdParamMiddleware],
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+      const query: QueryConfig = {
+        text: `
+          SELECT dishes
+          FROM restaurants
+          WHERE id = $1
+          ;`,
+        values: [id],
+      };
+      const result: QueryResult<Pick<Restaurant, "dishes">> =
+        await client.query(query);
+
+      return res.status(200).send(result.rows[0].dishes);
+    } catch (err) {}
+  }
+);
+
 export default router;
