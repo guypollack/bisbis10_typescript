@@ -16,7 +16,9 @@ const validateIdParamMiddleware = async (
     isNaN(Number.parseInt(id)) ||
     Number.parseInt(id) !== Number.parseFloat(id)
   ) {
-    return res.status(400).send("Bad Request. Restaurant id must be an integer");
+    return res
+      .status(400)
+      .send("Bad Request. Restaurant id must be an integer");
   }
 
   try {
