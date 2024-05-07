@@ -133,6 +133,42 @@ const validateRestaurantReqBodyMiddleware = async (
   next();
 };
 
+const validateIdInReqBodyMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { restaurantId } = req.body;
+
+  if (restaurantId === undefined) {
+    return res
+      .status(400)
+      .send("Bad Request. Required properties are missing: restaurantId");
+  }
+
+  if (
+    isNaN(Number.parseInt(restaurantId)) ||
+    Number.parseInt(restaurantId) !== Number.parseFloat(restaurantId)
+  ) {
+    return res.status(400).send("Bad Request. id must be an integer");
+  }
+
+  try {
+    const checkExistenceResponse = await client.query(
+      "SELECT * FROM restaurants WHERE id = $1",
+      [restaurantId]
+    );
+
+    if (checkExistenceResponse.rowCount === 0) {
+      return res
+        .status(404)
+        .send("The restaurant with the specified id was not found");
+    }
+  } catch (err) {}
+
+  next();
+};
+
 router.get("/", (req: Request, res: Response) => {
   res.send("Welcome to BISBIS10 Server");
 });
