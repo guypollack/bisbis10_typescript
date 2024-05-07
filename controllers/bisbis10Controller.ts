@@ -267,4 +267,37 @@ router.put("/restaurants/:id", async (req: Request, res: Response) => {
   return res.status(200).send();
 });
 
+router.delete("/restaurants/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  if (
+    isNaN(Number.parseInt(id)) ||
+    Number.parseInt(id) !== Number.parseFloat(id)
+  ) {
+    return res.status(400).send("Bad Request. id must be an integer");
+  }
+
+  try {
+    const checkExistenceResponse = await client.query(
+      "SELECT * FROM restaurants WHERE id = $1",
+      [id]
+    );
+
+    if (checkExistenceResponse.rowCount === 0) {
+      return res
+        .status(404)
+        .send("The restaurant with the specified id was not found");
+    }
+
+    const query: QueryConfig = {
+      text: "DELETE FROM restaurants WHERE id = $1",
+      values: [id],
+    };
+    
+    await client.query(query);
+
+    return res.status(204).send();
+  } catch (err) {}
+});
+
 export default router;
