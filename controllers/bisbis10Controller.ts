@@ -99,7 +99,7 @@ router.post("/restaurants", async (req: Request, res: Response) => {
       values: [name, isKosher, cuisines],
     };
 
-    client.query(query);
+    await client.query(query);
   } catch (err) {}
 
   return res.status(201).send();
