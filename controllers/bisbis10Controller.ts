@@ -559,4 +559,48 @@ router.post(
   }
 );
 
+router.delete(
+  "/restaurants/:id/dishes/:dishId",
+  [validateIdParamMiddleware, validateDishIdParamMiddleware],
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const dishIndex: number = req.body.dishIndex;
+
+    try {
+      const getDishesQuery: QueryConfig = {
+        text: `
+          SELECT dishes
+          FROM restaurants
+          WHERE id = $1
+          ;`,
+        values: [id],
+      };
+      const result: QueryResult<Restaurant> = await client.query(
+        getDishesQuery
+      );
+      const dishes = result.rows[0].dishes;
+
+      const updatedDishes = dishes.slice();
+      updatedDishes.splice(dishIndex, 1);
+
+      const updateDishesQuery: QueryConfig = {
+        text: `
+          UPDATE restaurants
+          SET dishes = $1
+          WHERE id = $2
+          ;`,
+        values: [updatedDishes, id],
+      };
+
+      await client.query(updateDishesQuery);
+    } catch (err) {
+      return res
+        .status(500)
+        .send("Internal Server Error. Unable to delete dish");
+    }
+
+    return res.status(204).send();
+  }
+);
+
 export default router;
