@@ -155,6 +155,15 @@ router.put("/restaurants/:id", async (req: Request, res: Response) => {
     cuisines,
   }: Pick<Restaurant, "name" | "isKosher" | "cuisines"> = req.body;
 
+  if (
+    isNaN(Number.parseInt(id)) ||
+    Number.parseInt(id) !== Number.parseFloat(id)
+  ) {
+    return res
+      .status(400)
+      .send("Bad Request. restaurant ID must be an integer");
+  }
+
   const allowedProperties = ["name", "isKosher", "cuisines"];
 
   // Check for not allowed properties being sent in request body
