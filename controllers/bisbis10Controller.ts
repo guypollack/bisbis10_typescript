@@ -45,6 +45,13 @@ router.get("/restaurants/:id", async (req: Request, res: Response) => {
       values: [id],
     };
     const result: QueryResult<Restaurant> = await client.query(query);
+
+    if (result.rowCount === 0) {
+      return res
+        .status(404)
+        .send("The restaurant with the specified id was not found");
+    }
+
     return res.status(200).send(result.rows);
   } catch (err) {}
 });
@@ -234,6 +241,17 @@ router.put("/restaurants/:id", async (req: Request, res: Response) => {
   });
 
   try {
+    const checkExistenceResponse = await client.query(
+      "SELECT * FROM restaurants WHERE id = $1",
+      [id]
+    );
+
+    if (checkExistenceResponse.rowCount === 0) {
+      return res
+        .status(404)
+        .send("The restaurant with the specified id was not found");
+    }
+
     const query: QueryConfig = {
       text: `
         UPDATE restaurants
