@@ -4,7 +4,8 @@ CREATE TABLE restaurants (
   "averageRating" FLOAT,
   "isKosher" BOOLEAN NOT NULL,
   cuisines VARCHAR(255)[] NOT NULL,
-  dishes JSON[]
+  dishes JSON[],
+  "nextDishId" INTEGER DEFAULT 1
 );
 
 INSERT INTO restaurants (name, "averageRating", "isKosher", cuisines, dishes)

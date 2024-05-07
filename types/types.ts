@@ -12,6 +12,7 @@ export interface Restaurant {
   isKosher: boolean;
   cuisines: string[];
   dishes: Dish[];
+  nextDishId: number;
 }
 
 export interface Rating {
