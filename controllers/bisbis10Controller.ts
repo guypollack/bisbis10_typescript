@@ -171,6 +171,97 @@ const validateIdInReqBodyMiddleware = async (
   next();
 };
 
+const validateDishReqBodyMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const {
+    name,
+    description,
+    price,
+  }: Pick<Dish, "name" | "description" | "price"> = req.body;
+
+  const allowedProperties = ["name", "description", "price"];
+
+  if (req.method === "POST") {
+    // Check for missing required properties in request body
+    const missingPropertiesInRequest = allowedProperties.filter(
+      (property) =>
+        !Object.keys(req.body).includes(property) ||
+        req.body[property] === undefined
+    );
+
+    if (missingPropertiesInRequest.length > 0) {
+      return res
+        .status(400)
+        .send(
+          `Bad Request. Required properties are missing: ${missingPropertiesInRequest.join(
+            ", "
+          )}`
+        );
+    }
+  }
+
+  // Check for not allowed properties being sent in request body
+  const forbiddenProperties = ["id"];
+
+  const forbiddenPropertiesInRequest = forbiddenProperties.filter((property) =>
+    Object.keys(req.body).includes(property)
+  );
+
+  if (forbiddenPropertiesInRequest.length > 0) {
+    const requestType =
+      req.method === "POST"
+        ? "creation request"
+        : req.method === "PUT"
+        ? "update request"
+        : "request";
+
+    return res
+      .status(422)
+      .send(
+        `Unprocessable Entity. The following properties cannot be included in the ${requestType}: ${forbiddenPropertiesInRequest.join(
+          ", "
+        )}`
+      );
+  }
+
+  // Check for unrecognized properties being sent in request body
+  const unrecognizedPropertiesInRequest = Object.keys(req.body).filter(
+    (property) =>
+      !allowedProperties.includes(property) &&
+      !forbiddenProperties.includes(property)
+  );
+
+  if (unrecognizedPropertiesInRequest.length > 0) {
+    return res
+      .status(400)
+      .send(
+        `Bad Request. Unrecognized properties in request: ${unrecognizedPropertiesInRequest.join(
+          ", "
+        )}`
+      );
+  }
+
+  // Check that all data types of columns to be updated are correct
+  if (name !== undefined && typeof name !== "string") {
+    return res.status(400).send("Bad Request. name must be a string");
+  }
+
+  if (description !== undefined && typeof description !== "string") {
+    return res.status(400).send("Bad Request. description must be a string");
+  }
+
+  if ((price !== undefined && typeof price !== "number") || price < 0) {
+    return res
+      .status(400)
+      .send("Bad Request. price must be a number greater than or equal to 0");
+  }
+
+  next();
+};
+
 router.get("/", (req: Request, res: Response) => {
   res.send("Welcome to BISBIS10 Server");
 });
