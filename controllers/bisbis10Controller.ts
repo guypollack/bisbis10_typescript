@@ -303,4 +303,53 @@ router.delete(
   }
 );
 
+router.post(
+  "/ratings",
+  [validateIdInReqBodyMiddleware],
+  async (req: Request, res: Response) => {
+    const { restaurantId, rating } = req.body;
+
+    if (isNaN(Number.parseFloat(rating)) || rating < 0 || rating > 5) {
+      return res
+        .status(400)
+        .send("Bad Request. rating must be a number between 0 and 5");
+    }
+
+    try {
+      const insertRatingQuery: QueryConfig = {
+        text: `
+          INSERT INTO ratings ("restaurantId", rating)
+          VALUES ($1, $2)
+          ;`,
+        values: [restaurantId, rating],
+      };
+
+      const updateAverageRatingQuery: QueryConfig = {
+        text: `
+          UPDATE restaurants
+          SET "averageRating" = 
+            (
+              SELECT AVG(rating)
+              FROM ratings
+              WHERE "restaurantId" = $1
+            )
+          WHERE id = $1
+          ;`,
+        values: [restaurantId],
+      };
+
+      await client.query("BEGIN");
+      await client.query(insertRatingQuery);
+      await client.query(updateAverageRatingQuery);
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK");
+      return res
+        .status(500)
+        .send("Internal Server Error. Unable to add new rating");
+    }
+    return res.status(200).send();
+  }
+);
+
 export default router;
