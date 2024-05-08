@@ -247,7 +247,7 @@ const validateDishReqBodyMiddleware = async (
       );
   }
 
-  // Check that all data types of columns to be updated are correct
+  // Check that all data types of dish properties are correct
   if (name !== undefined && typeof name !== "string") {
     return res.status(400).send("Bad Request. name must be a string");
   }
