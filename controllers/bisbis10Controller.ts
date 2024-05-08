@@ -288,7 +288,7 @@ const validateDishIdParamMiddleware = async (
     const result: QueryResult<Restaurant> = await client.query(getDishesQuery);
     const dishes = result.rows[0].dishes;
 
-    if (dishes === null || dishes.length === 0) {
+    if (dishes.length === 0) {
       return res
         .status(404)
         .send(
@@ -523,7 +523,7 @@ router.post(
       const result: QueryResult<Pick<Restaurant, "dishes" | "nextDishId">> =
         await client.query(getDishesQuery);
       const dishes = result.rows[0].dishes;
-      const currentDishes = dishes === null ? [] : dishes.slice();
+      const currentDishes = dishes.slice();
 
       const nextDishId = result.rows[0].nextDishId;
       const nextIdString = nextDishId.toString();
