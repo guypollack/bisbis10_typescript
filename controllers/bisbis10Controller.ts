@@ -315,6 +315,104 @@ const validateDishIdParamMiddleware = async (
   next();
 };
 
+const validateOrderReqBodyMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const orderItems: OrderItem[] = req.body.orderItems;
+
+  if (orderItems === undefined) {
+    return res
+      .status(400)
+      .send(`Bad Request. Required properties are missing: orderItems`);
+  }
+
+  if (!Array.isArray(orderItems) || orderItems.length === 0) {
+    return res
+      .status(400)
+      .send(`Bad Request. orderItems must be a non-empty array`);
+  }
+
+  const requiredProperties = ["dishId", "amount"];
+
+  orderItems.forEach((orderItem, index) => {
+    console.log("ITEM:", orderItem, typeof orderItem);
+    if (typeof orderItem !== "object") {
+      return res
+        .status(400)
+        .send(
+          `Bad Request. Item at index ${index} of orderItems array must be an object. Please ensure each item is formatted correctly`
+        );
+    }
+
+    // Check for missing required properties in element of orderItems array
+    const missingPropertiesInOrderItem = requiredProperties.filter(
+      (property) => !(property in orderItem)
+    );
+
+    if (missingPropertiesInOrderItem.length > 0) {
+      return res
+        .status(400)
+        .send(
+          `Bad Request. Required properties are missing at index ${index} of orderItems array: ${missingPropertiesInOrderItem.join(
+            ", "
+          )}`
+        );
+    }
+
+    // Check for unrecognized properties in element of orderItems array
+    const unrecognizedPropertiesInOrderItem = Object.keys(orderItem).filter(
+      (property) => !requiredProperties.includes(property)
+    );
+
+    if (unrecognizedPropertiesInOrderItem.length > 0) {
+      return res
+        .status(400)
+        .send(
+          `Bad Request. Unrecognized properties at index ${index} of orderItems array: ${unrecognizedPropertiesInOrderItem.join(
+            ", "
+          )}`
+        );
+    }
+
+    // Check that all data types of orderItem properties are correct
+    if (typeof orderItem.dishId !== "number") {
+      return res
+        .status(400)
+        .send(
+          `Bad Request. dishId property at index ${index} of orderItems array must be a number`
+        );
+    }
+
+    if (!Number.isInteger(orderItem.dishId) || orderItem.dishId < 0) {
+      return res
+        .status(400)
+        .send(
+          `Bad Request. dishId property at index ${index} of orderItems array must be a positive integer`
+        );
+    }
+
+    if (typeof orderItem.amount !== "number") {
+      return res
+        .status(400)
+        .send(
+          `Bad Request. amount property at index ${index} of orderItems array must be a number`
+        );
+    }
+
+    if (!Number.isInteger(orderItem.amount) || orderItem.amount < 1) {
+      return res
+        .status(400)
+        .send(
+          `Bad Request. amount property at index ${index} of orderItems array must be a positive integer`
+        );
+    }
+  });
+
+  next();
+};
+
 router.get("/", (req: Request, res: Response) => {
   res.send("Welcome to BISBIS10 Server");
 });
