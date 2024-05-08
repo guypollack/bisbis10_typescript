@@ -555,6 +555,71 @@ router.post(
   }
 );
 
+router.put(
+  "/restaurants/:id/dishes/:dishId",
+  [
+    validateIdParamMiddleware,
+    validateDishReqBodyMiddleware,
+    validateDishIdParamMiddleware,
+  ],
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const dishIndex: number = req.body.dishIndex;
+
+    const allowedProperties: (keyof Omit<Dish, "id">)[] = [
+      "name",
+      "description",
+      "price",
+    ];
+
+    const updatedDishProperties: Partial<Omit<Dish, "id">> = allowedProperties
+      .filter((property) => Object.keys(req.body).includes(property))
+      .reduce(
+        (accumulator, current) => ({
+          ...accumulator,
+          dog: false,
+          [current]: req.body[current],
+        }),
+        {}
+      );
+
+    try {
+      const getDishesQuery: QueryConfig = {
+        text: `
+          SELECT dishes
+          FROM restaurants
+          WHERE id = $1
+          ;`,
+        values: [id],
+      };
+
+      const getDishesQueryResult: QueryResult<Pick<Restaurant, "dishes">> =
+        await client.query(getDishesQuery);
+
+      const dishes = getDishesQueryResult.rows[0].dishes;
+
+      const dishToUpdate = dishes[dishIndex];
+      const updatedDish = { ...dishToUpdate, ...updatedDishProperties };
+
+      const updatedDishes = dishes.slice();
+      updatedDishes.splice(dishIndex, 1, updatedDish);
+
+      const updateDishesQuery: QueryConfig = {
+        text: `
+          UPDATE restaurants
+          SET dishes = $1
+          WHERE id = $2
+          ;`,
+        values: [updatedDishes, id],
+      };
+
+      await client.query(updateDishesQuery);
+    } catch (err) {}
+
+    return res.status(200).send();
+  }
+);
+
 router.delete(
   "/restaurants/:id/dishes/:dishId",
   [validateIdParamMiddleware, validateDishIdParamMiddleware],
