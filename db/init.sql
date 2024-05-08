@@ -17,6 +17,10 @@ VALUES (
   ARRAY['{"id": "1", "name": "Noodles", "description": "Amazing one", "price": 59}']::JSON[]
 );
 
+UPDATE restaurants
+SET "nextDishId" = 2
+WHERE id = 1 AND name = 'Taizu';
+
 CREATE TABLE ratings (
   id SERIAL PRIMARY KEY,
   "restaurantId" INTEGER NOT NULL REFERENCES restaurants(id),
