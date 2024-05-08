@@ -71,7 +71,7 @@ const validateRestaurantReqBodyMiddleware = async (
   }
 
   // Check for not allowed properties being sent in request body
-  const forbiddenProperties = ["id", "averageRating", "dishes"];
+  const forbiddenProperties = ["id", "averageRating", "dishes", "nextDishId"];
 
   const forbiddenPropertiesInRequest = forbiddenProperties.filter((property) =>
     Object.keys(req.body).includes(property)
