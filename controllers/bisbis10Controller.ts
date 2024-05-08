@@ -152,11 +152,10 @@ const validateIdInReqBodyMiddleware = async (
     return res.status(400).send("Bad Request. restaurantId must be a number");
   }
 
-  if (
-    Number.parseInt(restaurantId.toString()) !==
-    Number.parseFloat(restaurantId.toString())
-  ) {
-    return res.status(400).send("Bad Request. restaurantId must be an integer");
+  if (!Number.isInteger(restaurantId) || restaurantId < 1) {
+    return res
+      .status(400)
+      .send("Bad Request. restaurantId must be a positive integer");
   }
 
   try {
