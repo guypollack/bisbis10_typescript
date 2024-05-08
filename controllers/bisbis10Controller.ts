@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response, Router } from "express";
 import client from "../db/db";
 import { QueryConfig, QueryResult } from "pg";
-import { Dish, Restaurant } from "../types/types";
+import { Dish, Order, OrderItem, Restaurant } from "../types/types";
 import { roundToDp } from "../lib/helpers/roundToDp";
 
 const router = Router();
