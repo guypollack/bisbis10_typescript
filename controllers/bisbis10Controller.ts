@@ -413,6 +413,58 @@ const validateOrderReqBodyMiddleware = async (
   next();
 };
 
+const validateOrderDishesExistenceMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { restaurantId, orderItems }: Order = req.body;
+
+  try {
+    const getDishesQuery: QueryConfig = {
+      text: `
+        SELECT dishes
+        FROM restaurants
+        WHERE id = $1
+        ;`,
+      values: [restaurantId],
+    };
+
+    const getDishesQueryResult: QueryResult<Pick<Restaurant, "dishes">> =
+      await client.query(getDishesQuery);
+
+    const restaurantDishes = getDishesQueryResult.rows[0].dishes;
+    const restaurantDishesIdArray = restaurantDishes.map((dish) =>
+      Number.parseInt(dish.id)
+    );
+    const restaurantDishesIdSet = new Set(restaurantDishesIdArray);
+
+    const orderDishesIdArray = orderItems.map((orderItem) => orderItem.dishId);
+
+    const missingOrderItems = orderDishesIdArray.filter(
+      (dishId) => !restaurantDishesIdSet.has(dishId)
+    );
+
+    if (missingOrderItems.length > 0) {
+      return res
+        .status(404)
+        .send(
+          `Unable to process the order. The following dishIds were not found in the specified restaurant's menu: ${missingOrderItems.join(
+            ", "
+          )}`
+        );
+    }
+  } catch (err) {
+    return res
+      .status(500)
+      .send(
+        "Internal Server Error. Unable to check if restaurant menu contains all ordered dishes"
+      );
+  }
+
+  next();
+};
+
 router.get("/", (req: Request, res: Response) => {
   res.send("Welcome to BISBIS10 Server");
 });
@@ -608,47 +660,15 @@ router.post(
 
 router.post(
   "/order",
-  [validateIdInReqBodyMiddleware, validateOrderReqBodyMiddleware],
+  [
+    validateIdInReqBodyMiddleware,
+    validateOrderReqBodyMiddleware,
+    validateOrderDishesExistenceMiddleware,
+  ],
   async (req: Request, res: Response) => {
     const { restaurantId, orderItems }: Order = req.body;
 
     try {
-      const getDishesQuery: QueryConfig = {
-        text: `
-          SELECT dishes
-          FROM restaurants
-          WHERE id = $1
-          ;`,
-        values: [restaurantId],
-      };
-
-      const getDishesQueryResult: QueryResult<Pick<Restaurant, "dishes">> =
-        await client.query(getDishesQuery);
-
-      const restaurantDishes = getDishesQueryResult.rows[0].dishes;
-      const restaurantDishesIdArray = restaurantDishes.map((dish) =>
-        Number.parseInt(dish.id)
-      );
-      const restaurantDishesIdSet = new Set(restaurantDishesIdArray);
-
-      const orderDishesIdArray = orderItems.map(
-        (orderItem) => orderItem.dishId
-      );
-
-      const missingOrderItems = orderDishesIdArray.filter(
-        (dishId) => !restaurantDishesIdSet.has(dishId)
-      );
-
-      if (missingOrderItems.length > 0) {
-        return res
-          .status(404)
-          .send(
-            `Unable to process the order. The following dishIds were not found in the specified restaurant's menu: ${missingOrderItems.join(
-              ", "
-            )}`
-          );
-      }
-
       const combinedOrderItems: OrderItem[] = orderItems.reduce(
         (accumulator: OrderItem[], current: OrderItem) => {
           const existingItemIndex = accumulator.findIndex(
