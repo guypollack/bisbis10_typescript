@@ -285,7 +285,7 @@ const validateDishIdParamMiddleware = async (
         SELECT dishes
         FROM restaurants
         WHERE id = $1
-      ;`,
+        ;`,
       values: [id],
     };
     const result: QueryResult<Restaurant> = await client.query(getDishesQuery);
