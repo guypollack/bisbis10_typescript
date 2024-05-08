@@ -337,7 +337,6 @@ const validateOrderReqBodyMiddleware = async (
   const requiredProperties = ["dishId", "amount"];
 
   orderItems.forEach((orderItem, index) => {
-    console.log("ITEM:", orderItem, typeof orderItem);
     if (typeof orderItem !== "object") {
       return res
         .status(400)
