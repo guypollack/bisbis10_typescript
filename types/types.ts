@@ -20,3 +20,13 @@ export interface Rating {
   restaurantId: number;
   rating: number;
 }
+
+export interface OrderItem {
+  dishId: number;
+  amount: number;
+}
+
+export interface Order {
+  restaurantId: number;
+  orderItems: OrderItem[];
+}
