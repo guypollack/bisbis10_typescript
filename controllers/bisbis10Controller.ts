@@ -607,6 +607,83 @@ router.post(
 );
 
 router.post(
+  "/order",
+  [validateIdInReqBodyMiddleware, validateOrderReqBodyMiddleware],
+  async (req: Request, res: Response) => {
+    const { restaurantId, orderItems }: Order = req.body;
+
+    try {
+      const getDishesQuery: QueryConfig = {
+        text: `
+          SELECT dishes
+          FROM restaurants
+          WHERE id = $1
+          ;`,
+        values: [restaurantId],
+      };
+
+      const getDishesQueryResult: QueryResult<Pick<Restaurant, "dishes">> =
+        await client.query(getDishesQuery);
+
+      const restaurantDishes = getDishesQueryResult.rows[0].dishes;
+      const restaurantDishesIdArray = restaurantDishes.map((dish) =>
+        Number.parseInt(dish.id)
+      );
+      const restaurantDishesIdSet = new Set(restaurantDishesIdArray);
+
+      const orderDishesIdArray = orderItems.map(
+        (orderItem) => orderItem.dishId
+      );
+
+      const missingOrderItems = orderDishesIdArray.filter(
+        (dishId) => !restaurantDishesIdSet.has(dishId)
+      );
+
+      if (missingOrderItems.length > 0) {
+        return res
+          .status(404)
+          .send(
+            `Unable to process the order. The following dishIds were not found in the specified restaurant's menu: ${missingOrderItems.join(
+              ", "
+            )}`
+          );
+      }
+
+      const combinedOrderItems: OrderItem[] = orderItems.reduce(
+        (accumulator: OrderItem[], current: OrderItem) => {
+          const existingItemIndex = accumulator.findIndex(
+            (elem) => elem.dishId === current.dishId
+          );
+          if (existingItemIndex === -1) {
+            accumulator.push(current);
+          } else {
+            accumulator[existingItemIndex].amount += current.amount;
+          }
+          return accumulator;
+        },
+        []
+      );
+
+      const query: QueryConfig = {
+        text: `
+            INSERT INTO orders ("restaurantId", "orderItems")
+            VALUES ($1, $2)
+            RETURNING id
+            ;`,
+        values: [restaurantId, combinedOrderItems],
+      };
+
+      const result: QueryResult<Order> = await client.query(query);
+      return res.status(200).send(result.rows[0]);
+    } catch (err) {
+      return res
+        .status(500)
+        .send("Internal Server Error. Unable to create order");
+    }
+  }
+);
+
+router.post(
   "/restaurants/:id/dishes",
   [validateIdParamMiddleware, validateDishReqBodyMiddleware],
   async (req: Request, res: Response) => {
