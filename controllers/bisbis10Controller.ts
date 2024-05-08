@@ -291,14 +291,6 @@ const validateDishIdParamMiddleware = async (
     const result: QueryResult<Restaurant> = await client.query(getDishesQuery);
     const dishes = result.rows[0].dishes;
 
-    if (dishes.length === 0) {
-      return res
-        .status(404)
-        .send(
-          "The dish with the specified dishId was not found at the restaurant with the specified id"
-        );
-    }
-
     const dishIndex = dishes.findIndex((dish) => dish.id === dishId);
 
     if (dishIndex === -1) {
