@@ -148,9 +148,13 @@ const validateIdInReqBodyMiddleware = async (
       .send("Bad Request. Required properties are missing: restaurantId");
   }
 
+  if (typeof restaurantId !== "number") {
+    return res.status(400).send("Bad Request. restaurantId must be a number");
+  }
+
   if (
-    isNaN(Number.parseInt(restaurantId)) ||
-    Number.parseInt(restaurantId) !== Number.parseFloat(restaurantId)
+    Number.parseInt(restaurantId.toString()) !==
+    Number.parseFloat(restaurantId.toString())
   ) {
     return res.status(400).send("Bad Request. restaurantId must be an integer");
   }
