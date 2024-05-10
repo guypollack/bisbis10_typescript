@@ -378,7 +378,7 @@ const validateOrderReqBodyMiddleware = async (
         );
     }
 
-    if (!Number.isInteger(orderItem.dishId) || orderItem.dishId < 0) {
+    if (!Number.isInteger(orderItem.dishId) || orderItem.dishId < 1) {
       return res
         .status(400)
         .send(
