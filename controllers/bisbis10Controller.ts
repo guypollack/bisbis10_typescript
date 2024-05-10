@@ -13,13 +13,12 @@ const validateIdParamMiddleware = async (
 ) => {
   const { id } = req.params;
 
-  if (
-    isNaN(Number.parseInt(id)) ||
-    Number.parseInt(id) !== Number.parseFloat(id)
-  ) {
+  const nonDigitRegex = new RegExp(/\D/);
+
+  if (id === "0" || nonDigitRegex.test(id)) {
     return res
       .status(400)
-      .send("Bad Request. Restaurant id must be an integer");
+      .send("Bad Request. Restaurant id must be a positive integer");
   }
 
   try {
