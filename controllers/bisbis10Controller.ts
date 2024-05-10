@@ -793,7 +793,6 @@ router.put(
       .reduce(
         (accumulator, current) => ({
           ...accumulator,
-          dog: false,
           [current]: req.body[current],
         }),
         {}
