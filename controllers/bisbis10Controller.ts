@@ -429,9 +429,11 @@ const validateOrderDishesExistenceMiddleware = async (
       await client.query(getDishesQuery);
 
     const restaurantDishes = getDishesQueryResult.rows[0].dishes;
+
     const restaurantDishesIdArray = restaurantDishes.map((dish) =>
       Number.parseInt(dish.id)
     );
+
     const restaurantDishesIdSet = new Set(restaurantDishesIdArray);
 
     const orderDishesIdArray = orderItems.map((orderItem) => orderItem.dishId);
