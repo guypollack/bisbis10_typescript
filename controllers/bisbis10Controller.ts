@@ -271,11 +271,14 @@ const validateDishIdParamMiddleware = async (
 ) => {
   const { id, dishId } = req.params;
 
-  if (
-    isNaN(Number.parseInt(dishId)) ||
-    Number.parseInt(dishId) !== Number.parseFloat(dishId)
-  ) {
-    return res.status(400).send("Bad Request. dishId must be an integer");
+  const nonDigitRegex = new RegExp(/\D/);
+
+  if (dishId === "0" || nonDigitRegex.test(dishId)) {
+    {
+      return res
+        .status(400)
+        .send("Bad Request. dishId must be a positive integer");
+    }
   }
 
   try {
