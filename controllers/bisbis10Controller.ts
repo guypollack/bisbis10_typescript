@@ -587,15 +587,28 @@ router.delete(
     const { id } = req.params;
 
     try {
-      const query: QueryConfig = {
+      const deleteRatingsQuery: QueryConfig = {
+        text: `DELETE FROM ratings WHERE "restaurantId" = $1`,
+        values: [id],
+      };
+
+      const deleteRestaurantQuery: QueryConfig = {
         text: "DELETE FROM restaurants WHERE id = $1",
         values: [id],
       };
 
-      await client.query(query);
+      await client.query("BEGIN");
+      await client.query(deleteRatingsQuery);
+      await client.query(deleteRestaurantQuery);
+      await client.query("COMMIT");
 
       return res.status(204).send();
-    } catch (err) {}
+    } catch (err) {
+      await client.query("ROLLBACK");
+      return res
+        .status(500)
+        .send("Internal Server Error. Unable to delete restaurant");
+    }
   }
 );
 
