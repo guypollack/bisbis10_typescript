@@ -330,12 +330,14 @@ const validateOrderReqBodyMiddleware = async (
 
   const requiredProperties = ["dishId", "amount"];
 
-  orderItems.forEach((orderItem, index) => {
+  for (let i = 0; i < orderItems.length; i++) {
+    const orderItem = orderItems[i];
+
     if (typeof orderItem !== "object") {
       return res
         .status(400)
         .send(
-          `Bad Request. Item at index ${index} of orderItems array must be an object. Please ensure each item is formatted correctly`
+          `Bad Request. Item at index ${i} of orderItems array must be an object. Please ensure each item is formatted correctly`
         );
     }
 
@@ -348,7 +350,7 @@ const validateOrderReqBodyMiddleware = async (
       return res
         .status(400)
         .send(
-          `Bad Request. Required properties are missing at index ${index} of orderItems array: ${missingPropertiesInOrderItem.join(
+          `Bad Request. Required properties are missing at index ${i} of orderItems array: ${missingPropertiesInOrderItem.join(
             ", "
           )}`
         );
@@ -363,7 +365,7 @@ const validateOrderReqBodyMiddleware = async (
       return res
         .status(400)
         .send(
-          `Bad Request. Unrecognized properties at index ${index} of orderItems array: ${unrecognizedPropertiesInOrderItem.join(
+          `Bad Request. Unrecognized properties at index ${i} of orderItems array: ${unrecognizedPropertiesInOrderItem.join(
             ", "
           )}`
         );
@@ -374,7 +376,7 @@ const validateOrderReqBodyMiddleware = async (
       return res
         .status(400)
         .send(
-          `Bad Request. dishId property at index ${index} of orderItems array must be a number`
+          `Bad Request. dishId property at index ${i} of orderItems array must be a number`
         );
     }
 
@@ -382,7 +384,7 @@ const validateOrderReqBodyMiddleware = async (
       return res
         .status(400)
         .send(
-          `Bad Request. dishId property at index ${index} of orderItems array must be a positive integer`
+          `Bad Request. dishId property at index ${i} of orderItems array must be a positive integer`
         );
     }
 
@@ -390,7 +392,7 @@ const validateOrderReqBodyMiddleware = async (
       return res
         .status(400)
         .send(
-          `Bad Request. amount property at index ${index} of orderItems array must be a number`
+          `Bad Request. amount property at index ${i} of orderItems array must be a number`
         );
     }
 
@@ -398,10 +400,10 @@ const validateOrderReqBodyMiddleware = async (
       return res
         .status(400)
         .send(
-          `Bad Request. amount property at index ${index} of orderItems array must be a positive integer`
+          `Bad Request. amount property at index ${i} of orderItems array must be a positive integer`
         );
     }
-  });
+  }
 
   next();
 };
