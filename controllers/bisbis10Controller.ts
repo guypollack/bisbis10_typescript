@@ -319,6 +319,7 @@ const validateDishIdParamMiddleware = async (
           `A dish with id ${dishId} was not found in the specified restaurant's menu`
         );
     } else {
+      req.body.restaurantDishes = dishes;
       req.body.dishIndex = dishIndex;
     }
   } catch (err) {
