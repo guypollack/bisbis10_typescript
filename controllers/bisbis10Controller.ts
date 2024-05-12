@@ -42,93 +42,99 @@ const validateRestaurantReqBodyMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
-  const {
-    name,
-    isKosher,
-    cuisines,
-  }: Pick<Restaurant, "name" | "isKosher" | "cuisines"> = req.body;
+  try {
+    const {
+      name,
+      isKosher,
+      cuisines,
+    }: Pick<Restaurant, "name" | "isKosher" | "cuisines"> = req.body;
 
-  const allowedProperties = ["name", "isKosher", "cuisines"];
+    const allowedProperties = ["name", "isKosher", "cuisines"];
 
-  if (req.method === "POST") {
-    // Check for missing required properties in request body
-    const missingPropertiesInRequest = allowedProperties.filter(
-      (property) =>
-        !Object.keys(req.body).includes(property) ||
-        req.body[property] === undefined
+    if (req.method === "POST") {
+      // Check for missing required properties in request body
+      const missingPropertiesInRequest = allowedProperties.filter(
+        (property) =>
+          !Object.keys(req.body).includes(property) ||
+          req.body[property] === undefined
+      );
+
+      if (missingPropertiesInRequest.length > 0) {
+        return res
+          .status(400)
+          .send(
+            `Bad Request. Required properties are missing: ${missingPropertiesInRequest.join(
+              ", "
+            )}`
+          );
+      }
+    }
+
+    // Check for not allowed properties being sent in request body
+    const forbiddenProperties = ["id", "averageRating", "dishes", "nextDishId"];
+
+    const forbiddenPropertiesInRequest = forbiddenProperties.filter(
+      (property) => Object.keys(req.body).includes(property)
     );
 
-    if (missingPropertiesInRequest.length > 0) {
+    if (forbiddenPropertiesInRequest.length > 0) {
+      const requestType =
+        req.method === "POST"
+          ? "creation request"
+          : req.method === "PUT"
+          ? "update request"
+          : "request";
+
       return res
-        .status(400)
+        .status(422)
         .send(
-          `Bad Request. Required properties are missing: ${missingPropertiesInRequest.join(
+          `Unprocessable Entity. The following properties cannot be included in the ${requestType}: ${forbiddenPropertiesInRequest.join(
             ", "
           )}`
         );
     }
-  }
 
-  // Check for not allowed properties being sent in request body
-  const forbiddenProperties = ["id", "averageRating", "dishes", "nextDishId"];
+    // Check for unrecognized properties being sent in request body
+    const unrecognizedPropertiesInRequest = Object.keys(req.body).filter(
+      (property) =>
+        !allowedProperties.includes(property) &&
+        !forbiddenProperties.includes(property)
+    );
 
-  const forbiddenPropertiesInRequest = forbiddenProperties.filter((property) =>
-    Object.keys(req.body).includes(property)
-  );
+    if (unrecognizedPropertiesInRequest.length > 0) {
+      return res
+        .status(400)
+        .send(
+          `Bad Request. Unrecognized properties in request: ${unrecognizedPropertiesInRequest.join(
+            ", "
+          )}`
+        );
+    }
 
-  if (forbiddenPropertiesInRequest.length > 0) {
-    const requestType =
-      req.method === "POST"
-        ? "creation request"
-        : req.method === "PUT"
-        ? "update request"
-        : "request";
+    // Check that all data types of columns to be updated are correct
+    if (name !== undefined && typeof name !== "string") {
+      return res.status(400).send("Bad Request. name must be a string");
+    }
 
+    if (isKosher !== undefined && typeof isKosher !== "boolean") {
+      return res.status(400).send("Bad Request. isKosher must be a boolean");
+    }
+
+    if (
+      cuisines !== undefined &&
+      !(
+        Array.isArray(cuisines) &&
+        cuisines.every((elem) => typeof elem === "string")
+      )
+    ) {
+      return res
+        .status(400)
+        .send("Bad Request. cuisines must be an array of strings");
+    }
+  } catch (err) {
     return res
-      .status(422)
-      .send(
-        `Unprocessable Entity. The following properties cannot be included in the ${requestType}: ${forbiddenPropertiesInRequest.join(
-          ", "
-        )}`
-      );
-  }
-
-  // Check for unrecognized properties being sent in request body
-  const unrecognizedPropertiesInRequest = Object.keys(req.body).filter(
-    (property) =>
-      !allowedProperties.includes(property) &&
-      !forbiddenProperties.includes(property)
-  );
-
-  if (unrecognizedPropertiesInRequest.length > 0) {
-    return res
-      .status(400)
-      .send(
-        `Bad Request. Unrecognized properties in request: ${unrecognizedPropertiesInRequest.join(
-          ", "
-        )}`
-      );
-  }
-
-  // Check that all data types of columns to be updated are correct
-  if (name !== undefined && typeof name !== "string") {
-    return res.status(400).send("Bad Request. name must be a string");
-  }
-
-  if (isKosher !== undefined && typeof isKosher !== "boolean") {
-    return res.status(400).send("Bad Request. isKosher must be a boolean");
-  }
-
-  if (
-    cuisines !== undefined &&
-    !(
-      Array.isArray(cuisines) &&
-      cuisines.every((elem) => typeof elem === "string")
-    )
-  ) {
-    return res
-      .status(400)
-      .send("Bad Request. cuisines must be an array of strings");
+      .status(500)
+      .send("Internal Server Error. Unable to validate request body");
   }
 
   next();
@@ -182,87 +188,93 @@ const validateDishReqBodyMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
-  const {
-    name,
-    description,
-    price,
-  }: Pick<Dish, "name" | "description" | "price"> = req.body;
+  try {
+    const {
+      name,
+      description,
+      price,
+    }: Pick<Dish, "name" | "description" | "price"> = req.body;
 
-  const allowedProperties = ["name", "description", "price"];
+    const allowedProperties = ["name", "description", "price"];
 
-  if (req.method === "POST") {
-    // Check for missing required properties in request body
-    const missingPropertiesInRequest = allowedProperties.filter(
-      (property) =>
-        !Object.keys(req.body).includes(property) ||
-        req.body[property] === undefined
+    if (req.method === "POST") {
+      // Check for missing required properties in request body
+      const missingPropertiesInRequest = allowedProperties.filter(
+        (property) =>
+          !Object.keys(req.body).includes(property) ||
+          req.body[property] === undefined
+      );
+
+      if (missingPropertiesInRequest.length > 0) {
+        return res
+          .status(400)
+          .send(
+            `Bad Request. Required properties are missing: ${missingPropertiesInRequest.join(
+              ", "
+            )}`
+          );
+      }
+    }
+
+    // Check for not allowed properties being sent in request body
+    const forbiddenProperties = ["id"];
+
+    const forbiddenPropertiesInRequest = forbiddenProperties.filter(
+      (property) => Object.keys(req.body).includes(property)
     );
 
-    if (missingPropertiesInRequest.length > 0) {
+    if (forbiddenPropertiesInRequest.length > 0) {
+      const requestType =
+        req.method === "POST"
+          ? "creation request"
+          : req.method === "PUT"
+          ? "update request"
+          : "request";
+
       return res
-        .status(400)
+        .status(422)
         .send(
-          `Bad Request. Required properties are missing: ${missingPropertiesInRequest.join(
+          `Unprocessable Entity. The following properties cannot be included in the ${requestType}: ${forbiddenPropertiesInRequest.join(
             ", "
           )}`
         );
     }
-  }
 
-  // Check for not allowed properties being sent in request body
-  const forbiddenProperties = ["id"];
+    // Check for unrecognized properties being sent in request body
+    const unrecognizedPropertiesInRequest = Object.keys(req.body).filter(
+      (property) =>
+        !allowedProperties.includes(property) &&
+        !forbiddenProperties.includes(property)
+    );
 
-  const forbiddenPropertiesInRequest = forbiddenProperties.filter((property) =>
-    Object.keys(req.body).includes(property)
-  );
+    if (unrecognizedPropertiesInRequest.length > 0) {
+      return res
+        .status(400)
+        .send(
+          `Bad Request. Unrecognized properties in request: ${unrecognizedPropertiesInRequest.join(
+            ", "
+          )}`
+        );
+    }
 
-  if (forbiddenPropertiesInRequest.length > 0) {
-    const requestType =
-      req.method === "POST"
-        ? "creation request"
-        : req.method === "PUT"
-        ? "update request"
-        : "request";
+    // Check that all data types of dish properties are correct
+    if (name !== undefined && typeof name !== "string") {
+      return res.status(400).send("Bad Request. name must be a string");
+    }
 
+    if (description !== undefined && typeof description !== "string") {
+      return res.status(400).send("Bad Request. description must be a string");
+    }
+
+    if ((price !== undefined && typeof price !== "number") || price < 0) {
+      return res
+        .status(400)
+        .send("Bad Request. price must be a number greater than or equal to 0");
+    }
+  } catch (err) {
     return res
-      .status(422)
-      .send(
-        `Unprocessable Entity. The following properties cannot be included in the ${requestType}: ${forbiddenPropertiesInRequest.join(
-          ", "
-        )}`
-      );
-  }
-
-  // Check for unrecognized properties being sent in request body
-  const unrecognizedPropertiesInRequest = Object.keys(req.body).filter(
-    (property) =>
-      !allowedProperties.includes(property) &&
-      !forbiddenProperties.includes(property)
-  );
-
-  if (unrecognizedPropertiesInRequest.length > 0) {
-    return res
-      .status(400)
-      .send(
-        `Bad Request. Unrecognized properties in request: ${unrecognizedPropertiesInRequest.join(
-          ", "
-        )}`
-      );
-  }
-
-  // Check that all data types of dish properties are correct
-  if (name !== undefined && typeof name !== "string") {
-    return res.status(400).send("Bad Request. name must be a string");
-  }
-
-  if (description !== undefined && typeof description !== "string") {
-    return res.status(400).send("Bad Request. description must be a string");
-  }
-
-  if ((price !== undefined && typeof price !== "number") || price < 0) {
-    return res
-      .status(400)
-      .send("Bad Request. price must be a number greater than or equal to 0");
+      .status(500)
+      .send("Internal Server Error. Unable to validate request body");
   }
 
   next();
@@ -325,95 +337,101 @@ const validateOrderReqBodyMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
-  const orderItems: OrderItem[] = req.body.orderItems;
+  try {
+    const orderItems: OrderItem[] = req.body.orderItems;
 
-  if (orderItems === undefined) {
+    if (orderItems === undefined) {
+      return res
+        .status(400)
+        .send(`Bad Request. Required properties are missing: orderItems`);
+    }
+
+    if (!Array.isArray(orderItems) || orderItems.length === 0) {
+      return res
+        .status(400)
+        .send(`Bad Request. orderItems must be a non-empty array`);
+    }
+
+    const requiredProperties = ["dishId", "amount"];
+
+    for (let i = 0; i < orderItems.length; i++) {
+      const orderItem = orderItems[i];
+
+      if (typeof orderItem !== "object") {
+        return res
+          .status(400)
+          .send(
+            `Bad Request. Item at index ${i} of orderItems array must be an object. Please ensure each item is formatted correctly`
+          );
+      }
+
+      // Check for missing required properties in element of orderItems array
+      const missingPropertiesInOrderItem = requiredProperties.filter(
+        (property) => !(property in orderItem)
+      );
+
+      if (missingPropertiesInOrderItem.length > 0) {
+        return res
+          .status(400)
+          .send(
+            `Bad Request. Required properties are missing at index ${i} of orderItems array: ${missingPropertiesInOrderItem.join(
+              ", "
+            )}`
+          );
+      }
+
+      // Check for unrecognized properties in element of orderItems array
+      const unrecognizedPropertiesInOrderItem = Object.keys(orderItem).filter(
+        (property) => !requiredProperties.includes(property)
+      );
+
+      if (unrecognizedPropertiesInOrderItem.length > 0) {
+        return res
+          .status(400)
+          .send(
+            `Bad Request. Unrecognized properties at index ${i} of orderItems array: ${unrecognizedPropertiesInOrderItem.join(
+              ", "
+            )}`
+          );
+      }
+
+      // Check that all data types of orderItem properties are correct
+      if (typeof orderItem.dishId !== "number") {
+        return res
+          .status(400)
+          .send(
+            `Bad Request. dishId property at index ${i} of orderItems array must be a number`
+          );
+      }
+
+      if (!Number.isInteger(orderItem.dishId) || orderItem.dishId < 1) {
+        return res
+          .status(400)
+          .send(
+            `Bad Request. dishId property at index ${i} of orderItems array must be a positive integer`
+          );
+      }
+
+      if (typeof orderItem.amount !== "number") {
+        return res
+          .status(400)
+          .send(
+            `Bad Request. amount property at index ${i} of orderItems array must be a number`
+          );
+      }
+
+      if (!Number.isInteger(orderItem.amount) || orderItem.amount < 1) {
+        return res
+          .status(400)
+          .send(
+            `Bad Request. amount property at index ${i} of orderItems array must be a positive integer`
+          );
+      }
+    }
+  } catch (err) {
     return res
-      .status(400)
-      .send(`Bad Request. Required properties are missing: orderItems`);
-  }
-
-  if (!Array.isArray(orderItems) || orderItems.length === 0) {
-    return res
-      .status(400)
-      .send(`Bad Request. orderItems must be a non-empty array`);
-  }
-
-  const requiredProperties = ["dishId", "amount"];
-
-  for (let i = 0; i < orderItems.length; i++) {
-    const orderItem = orderItems[i];
-
-    if (typeof orderItem !== "object") {
-      return res
-        .status(400)
-        .send(
-          `Bad Request. Item at index ${i} of orderItems array must be an object. Please ensure each item is formatted correctly`
-        );
-    }
-
-    // Check for missing required properties in element of orderItems array
-    const missingPropertiesInOrderItem = requiredProperties.filter(
-      (property) => !(property in orderItem)
-    );
-
-    if (missingPropertiesInOrderItem.length > 0) {
-      return res
-        .status(400)
-        .send(
-          `Bad Request. Required properties are missing at index ${i} of orderItems array: ${missingPropertiesInOrderItem.join(
-            ", "
-          )}`
-        );
-    }
-
-    // Check for unrecognized properties in element of orderItems array
-    const unrecognizedPropertiesInOrderItem = Object.keys(orderItem).filter(
-      (property) => !requiredProperties.includes(property)
-    );
-
-    if (unrecognizedPropertiesInOrderItem.length > 0) {
-      return res
-        .status(400)
-        .send(
-          `Bad Request. Unrecognized properties at index ${i} of orderItems array: ${unrecognizedPropertiesInOrderItem.join(
-            ", "
-          )}`
-        );
-    }
-
-    // Check that all data types of orderItem properties are correct
-    if (typeof orderItem.dishId !== "number") {
-      return res
-        .status(400)
-        .send(
-          `Bad Request. dishId property at index ${i} of orderItems array must be a number`
-        );
-    }
-
-    if (!Number.isInteger(orderItem.dishId) || orderItem.dishId < 1) {
-      return res
-        .status(400)
-        .send(
-          `Bad Request. dishId property at index ${i} of orderItems array must be a positive integer`
-        );
-    }
-
-    if (typeof orderItem.amount !== "number") {
-      return res
-        .status(400)
-        .send(
-          `Bad Request. amount property at index ${i} of orderItems array must be a number`
-        );
-    }
-
-    if (!Number.isInteger(orderItem.amount) || orderItem.amount < 1) {
-      return res
-        .status(400)
-        .send(
-          `Bad Request. amount property at index ${i} of orderItems array must be a positive integer`
-        );
-    }
+      .status(500)
+      .send("Internal Server Error. Unable to validate request body");
   }
 
   next();
@@ -478,30 +496,36 @@ router.get("/", (req: Request, res: Response) => {
 });
 
 router.get("/restaurants", async (req: Request, res: Response) => {
-  const { cuisine } = req.query;
+  try {
+    const { cuisine } = req.query;
 
-  let result: QueryResult<Omit<Restaurant, "dishes">>;
+    let result: QueryResult<Omit<Restaurant, "dishes">>;
 
-  if (cuisine) {
-    const query: QueryConfig = {
-      text: `
+    if (cuisine) {
+      const query: QueryConfig = {
+        text: `
         SELECT id::VARCHAR, name, ROUND("averageRating"::numeric, 2) AS "averageRating", "isKosher", cuisines
         FROM restaurants
         WHERE $1 = ANY(cuisines)
         ORDER BY id ASC
         ;`,
-      values: [cuisine],
-    };
-    result = await client.query(query);
-  } else {
-    result = await client.query(`
+        values: [cuisine],
+      };
+      result = await client.query(query);
+    } else {
+      result = await client.query(`
       SELECT id::VARCHAR, name, ROUND("averageRating"::numeric, 2) AS "averageRating", "isKosher", cuisines
       FROM restaurants
       ORDER BY id ASC
       ;`);
-  }
+    }
 
-  return res.status(200).send(result.rows);
+    return res.status(200).send(result.rows);
+  } catch (err) {
+    return res
+      .status(500)
+      .send("Internal Server Error. Unable to get restaurants");
+  }
 });
 
 router.get(
