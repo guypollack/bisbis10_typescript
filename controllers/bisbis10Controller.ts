@@ -411,7 +411,7 @@ const validateOrderReqBodyMiddleware = async (
 
       // Check for missing required properties in element of orderItems array
       const missingPropertiesInOrderItem = findMissing(
-        req.body,
+        orderItem,
         allowedOrderItemProperties
       );
 
@@ -427,7 +427,7 @@ const validateOrderReqBodyMiddleware = async (
 
       // Check for unrecognized properties in element of orderItems array
       const unrecognizedPropertiesInOrderItem = findUnrecognized(
-        req.body,
+        orderItem,
         allowedOrderItemProperties,
         []
       );
