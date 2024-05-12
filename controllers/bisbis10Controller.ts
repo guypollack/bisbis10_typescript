@@ -625,7 +625,7 @@ router.post(
   async (req: Request, res: Response) => {
     const { restaurantId, rating } = req.body;
 
-    if (isNaN(Number.parseFloat(rating)) || rating < 0 || rating > 5) {
+    if (typeof rating !== "number" || rating < 0 || rating > 5) {
       return res
         .status(400)
         .send("Bad Request. rating must be a number between 0 and 5");
