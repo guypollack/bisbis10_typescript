@@ -523,7 +523,11 @@ router.get(
       const result: QueryResult<Restaurant> = await client.query(query);
 
       return res.status(200).send(result.rows[0]);
-    } catch (err) {}
+    } catch (err) {
+      return res
+        .status(500)
+        .send("Internal Server Error. Unable to get restaurant");
+    }
   }
 );
 
@@ -547,9 +551,13 @@ router.post(
       };
 
       await client.query(query);
-    } catch (err) {}
 
-    return res.status(201).send();
+      return res.status(201).send();
+    } catch (err) {
+      return res
+        .status(500)
+        .send("Internal Server Error. Unable to add new restaurant");
+    }
   }
 );
 
@@ -593,9 +601,13 @@ router.put(
       };
 
       await client.query(query);
-    } catch (err) {}
 
-    return res.status(200).send();
+      return res.status(200).send();
+    } catch (err) {
+      return res
+        .status(500)
+        .send("Internal Server Error. Unable to update restaurant");
+    }
   }
 );
 
@@ -722,11 +734,12 @@ router.post(
       };
 
       const result: QueryResult<Order> = await client.query(query);
+
       return res.status(200).send(result.rows[0]);
     } catch (err) {
       return res
         .status(500)
-        .send("Internal Server Error. Unable to create order");
+        .send("Internal Server Error. Unable to add new order");
     }
   }
 );
@@ -851,9 +864,13 @@ router.put(
       };
 
       await client.query(updateDishesQuery);
-    } catch (err) {}
 
-    return res.status(200).send();
+      return res.status(200).send();
+    } catch (err) {
+      return res
+        .status(500)
+        .send("Internal Server Error. Unable to update dish");
+    }
   }
 );
 
@@ -920,7 +937,11 @@ router.get(
         await client.query(query);
 
       return res.status(200).send(result.rows[0].dishes);
-    } catch (err) {}
+    } catch (err) {
+      return res
+        .status(500)
+        .send("Internal Server Error. Unable to get dishes");
+    }
   }
 );
 
