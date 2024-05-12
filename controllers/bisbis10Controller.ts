@@ -499,26 +499,31 @@ router.get("/restaurants", async (req: Request, res: Response) => {
   try {
     const { cuisine } = req.query;
 
-    let result: QueryResult<Omit<Restaurant, "dishes">>;
+    let getRestaurantsQuery: QueryConfig;
 
     if (cuisine) {
-      const query: QueryConfig = {
+      getRestaurantsQuery = {
         text: `
-        SELECT id::VARCHAR, name, ROUND("averageRating"::numeric, 2) AS "averageRating", "isKosher", cuisines
-        FROM restaurants
-        WHERE $1 = ANY(cuisines)
-        ORDER BY id ASC
-        ;`,
+          SELECT id::VARCHAR, name, ROUND("averageRating"::numeric, 2) AS "averageRating", "isKosher", cuisines
+          FROM restaurants
+          WHERE $1 = ANY(cuisines)
+          ORDER BY id ASC
+          ;`,
         values: [cuisine],
       };
-      result = await client.query(query);
     } else {
-      result = await client.query(`
-      SELECT id::VARCHAR, name, ROUND("averageRating"::numeric, 2) AS "averageRating", "isKosher", cuisines
-      FROM restaurants
-      ORDER BY id ASC
-      ;`);
+      getRestaurantsQuery = {
+        text: `
+          SELECT id::VARCHAR, name, ROUND("averageRating"::numeric, 2) AS "averageRating", "isKosher", cuisines
+          FROM restaurants
+          ORDER BY id ASC
+          ;`,
+      };
     }
+
+    const result: QueryResult<Omit<Restaurant, "dishes">> = await client.query(
+      getRestaurantsQuery
+    );
 
     return res.status(200).send(result.rows);
   } catch (err) {
@@ -535,7 +540,7 @@ router.get(
     try {
       const { id } = req.params;
 
-      const query: QueryConfig = {
+      const getRestaurantQuery: QueryConfig = {
         text: `
           SELECT id::VARCHAR, name, ROUND("averageRating"::numeric, 2) as "averageRating", "isKosher", cuisines, dishes
           FROM restaurants
@@ -543,7 +548,9 @@ router.get(
           ;`,
         values: [id],
       };
-      const result: QueryResult<Restaurant> = await client.query(query);
+      const result: QueryResult<Restaurant> = await client.query(
+        getRestaurantQuery
+      );
 
       return res.status(200).send(result.rows[0]);
     } catch (err) {
@@ -565,7 +572,7 @@ router.post(
         cuisines,
       }: Pick<Restaurant, "name" | "isKosher" | "cuisines"> = req.body;
 
-      const query: QueryConfig = {
+      const addRestaurantQuery: QueryConfig = {
         text: `
           INSERT INTO restaurants (name, "isKosher", cuisines)
           VALUES ($1, $2, $3)
@@ -573,7 +580,7 @@ router.post(
         values: [name, isKosher, cuisines],
       };
 
-      await client.query(query);
+      await client.query(addRestaurantQuery);
 
       return res.status(201).send();
     } catch (err) {
@@ -614,7 +621,7 @@ router.put(
         setClauseParameters.push(req.body[columnName]);
       });
 
-      const query: QueryConfig = {
+      const updateRestaurantQuery: QueryConfig = {
         text: `
           UPDATE restaurants
           SET ${setClauseComponents.join(", ")}
@@ -623,7 +630,7 @@ router.put(
         values: [id, ...setClauseParameters],
       };
 
-      await client.query(query);
+      await client.query(updateRestaurantQuery);
 
       return res.status(200).send();
     } catch (err) {
@@ -685,7 +692,7 @@ router.post(
           .send("Bad Request. rating must be a number between 0 and 5");
       }
 
-      const insertRatingQuery: QueryConfig = {
+      const addRatingQuery: QueryConfig = {
         text: `
           INSERT INTO ratings ("restaurantId", rating)
           VALUES ($1, $2)
@@ -708,7 +715,7 @@ router.post(
       };
 
       await client.query("BEGIN");
-      await client.query(insertRatingQuery);
+      await client.query(addRatingQuery);
       await client.query(updateAverageRatingQuery);
       await client.query("COMMIT");
 
@@ -748,7 +755,7 @@ router.post(
         []
       );
 
-      const query: QueryConfig = {
+      const addOrderQuery: QueryConfig = {
         text: `
             INSERT INTO orders ("restaurantId", "orderItems")
             VALUES ($1, $2)
@@ -757,7 +764,7 @@ router.post(
         values: [restaurantId, combinedOrderItems],
       };
 
-      const result: QueryResult<Order> = await client.query(query);
+      const result: QueryResult<Order> = await client.query(addOrderQuery);
 
       return res.status(200).send(result.rows[0]);
     } catch (err) {
@@ -804,7 +811,7 @@ router.post(
         price: roundToDp(price, 2),
       };
 
-      const addNewDishQuery: QueryConfig = {
+      const addDishQuery: QueryConfig = {
         text: `
           UPDATE restaurants
           SET dishes = $1, "nextDishId" = $2
@@ -813,7 +820,7 @@ router.post(
         values: [[...currentDishes, newDish], nextDishId + 1, id],
       };
 
-      await client.query(addNewDishQuery);
+      await client.query(addDishQuery);
 
       return res.status(201).send();
     } catch (err) {
@@ -949,7 +956,7 @@ router.get(
     try {
       const { id } = req.params;
 
-      const query: QueryConfig = {
+      const getDishesQuery: QueryConfig = {
         text: `
           SELECT dishes
           FROM restaurants
@@ -958,7 +965,7 @@ router.get(
         values: [id],
       };
       const result: QueryResult<Pick<Restaurant, "dishes">> =
-        await client.query(query);
+        await client.query(getDishesQuery);
 
       return res.status(200).send(result.rows[0].dishes);
     } catch (err) {
