@@ -3,6 +3,11 @@ import client from "../db/db";
 import { QueryConfig, QueryResult } from "pg";
 import { Dish, Order, OrderItem, Restaurant } from "../types/types";
 import { roundToDp } from "../lib/helpers/roundToDp";
+import {
+  findForbidden,
+  findMissing,
+  findUnrecognized,
+} from "../lib/analyzeRequestBody";
 
 const router = Router();
 
@@ -50,13 +55,13 @@ const validateRestaurantReqBodyMiddleware = async (
     }: Pick<Restaurant, "name" | "isKosher" | "cuisines"> = req.body;
 
     const allowedProperties = ["name", "isKosher", "cuisines"];
+    const forbiddenProperties = ["id", "averageRating", "dishes", "nextDishId"];
 
     if (req.method === "POST") {
       // Check for missing required properties in request body
-      const missingPropertiesInRequest = allowedProperties.filter(
-        (property) =>
-          !Object.keys(req.body).includes(property) ||
-          req.body[property] === undefined
+      const missingPropertiesInRequest = findMissing(
+        req.body,
+        allowedProperties
       );
 
       if (missingPropertiesInRequest.length > 0) {
@@ -71,34 +76,26 @@ const validateRestaurantReqBodyMiddleware = async (
     }
 
     // Check for not allowed properties being sent in request body
-    const forbiddenProperties = ["id", "averageRating", "dishes", "nextDishId"];
-
-    const forbiddenPropertiesInRequest = forbiddenProperties.filter(
-      (property) => Object.keys(req.body).includes(property)
+    const forbiddenPropertiesInRequest = findForbidden(
+      req.body,
+      forbiddenProperties
     );
 
     if (forbiddenPropertiesInRequest.length > 0) {
-      const requestType =
-        req.method === "POST"
-          ? "creation request"
-          : req.method === "PUT"
-          ? "update request"
-          : "request";
-
       return res
         .status(422)
         .send(
-          `Unprocessable Entity. The following properties cannot be included in the ${requestType}: ${forbiddenPropertiesInRequest.join(
+          `Unprocessable Entity. The following properties cannot be included in the request: ${forbiddenPropertiesInRequest.join(
             ", "
           )}`
         );
     }
 
     // Check for unrecognized properties being sent in request body
-    const unrecognizedPropertiesInRequest = Object.keys(req.body).filter(
-      (property) =>
-        !allowedProperties.includes(property) &&
-        !forbiddenProperties.includes(property)
+    const unrecognizedPropertiesInRequest = findUnrecognized(
+      req.body,
+      allowedProperties,
+      forbiddenProperties
     );
 
     if (unrecognizedPropertiesInRequest.length > 0) {
@@ -114,7 +111,6 @@ const validateRestaurantReqBodyMiddleware = async (
     // Check that all data types of columns to be updated are correct
     if (
       name !== undefined &&
-      
       (typeof name !== "string" || name.trim().length === 0)
     ) {
       return res
@@ -203,13 +199,13 @@ const validateDishReqBodyMiddleware = async (
     }: Pick<Dish, "name" | "description" | "price"> = req.body;
 
     const allowedProperties = ["name", "description", "price"];
+    const forbiddenProperties = ["id"];
 
     if (req.method === "POST") {
       // Check for missing required properties in request body
-      const missingPropertiesInRequest = allowedProperties.filter(
-        (property) =>
-          !Object.keys(req.body).includes(property) ||
-          req.body[property] === undefined
+      const missingPropertiesInRequest = findMissing(
+        req.body,
+        allowedProperties
       );
 
       if (missingPropertiesInRequest.length > 0) {
@@ -224,10 +220,9 @@ const validateDishReqBodyMiddleware = async (
     }
 
     // Check for not allowed properties being sent in request body
-    const forbiddenProperties = ["id"];
-
-    const forbiddenPropertiesInRequest = forbiddenProperties.filter(
-      (property) => Object.keys(req.body).includes(property)
+    const forbiddenPropertiesInRequest = findForbidden(
+      req.body,
+      forbiddenProperties
     );
 
     if (forbiddenPropertiesInRequest.length > 0) {
@@ -241,10 +236,10 @@ const validateDishReqBodyMiddleware = async (
     }
 
     // Check for unrecognized properties being sent in request body
-    const unrecognizedPropertiesInRequest = Object.keys(req.body).filter(
-      (property) =>
-        !allowedProperties.includes(property) &&
-        !forbiddenProperties.includes(property)
+    const unrecognizedPropertiesInRequest = findUnrecognized(
+      req.body,
+      allowedProperties,
+      forbiddenProperties
     );
 
     if (unrecognizedPropertiesInRequest.length > 0) {
@@ -346,19 +341,62 @@ const validateOrderReqBodyMiddleware = async (
   try {
     const orderItems: OrderItem[] = req.body.orderItems;
 
-    if (orderItems === undefined) {
+    const allowedProperties = ["restaurantId", "orderItems"];
+    const forbiddenProperties = ["id"];
+
+    const missingPropertiesInRequest = findMissing(req.body, allowedProperties);
+
+    if (missingPropertiesInRequest.length > 0) {
       return res
         .status(400)
-        .send(`Bad Request. Required properties are missing: orderItems`);
+        .send(
+          `Bad Request. Required properties are missing: ${missingPropertiesInRequest.join(
+            ", "
+          )}`
+        );
     }
 
+    const forbiddenPropertiesInRequest = findForbidden(
+      req.body,
+      forbiddenProperties
+    );
+
+    if (forbiddenPropertiesInRequest.length > 0) {
+      return res
+        .status(422)
+        .send(
+          `Unprocessable Entity. The following properties cannot be included in the request: ${forbiddenPropertiesInRequest.join(
+            ", "
+          )}`
+        );
+    }
+
+    const unrecognizedPropertiesInRequest = findUnrecognized(
+      req.body,
+      allowedProperties,
+      forbiddenProperties
+    );
+
+    if (unrecognizedPropertiesInRequest.length > 0) {
+      return res
+        .status(400)
+        .send(
+          `Bad Request. Unrecognized properties in request: ${unrecognizedPropertiesInRequest.join(
+            ", "
+          )}`
+        );
+    }
+
+    // Check that data type of orderItems is correct
     if (!Array.isArray(orderItems) || orderItems.length === 0) {
       return res
         .status(400)
         .send(`Bad Request. orderItems must be a non-empty array`);
     }
 
-    const requiredProperties = ["dishId", "amount"];
+    // Do not check data type of restaurantId - this is handled in validateIdInReqBodyMiddleware
+
+    const allowedOrderItemProperties = ["dishId", "amount"];
 
     for (let i = 0; i < orderItems.length; i++) {
       const orderItem = orderItems[i];
@@ -372,8 +410,9 @@ const validateOrderReqBodyMiddleware = async (
       }
 
       // Check for missing required properties in element of orderItems array
-      const missingPropertiesInOrderItem = requiredProperties.filter(
-        (property) => !(property in orderItem)
+      const missingPropertiesInOrderItem = findMissing(
+        req.body,
+        allowedOrderItemProperties
       );
 
       if (missingPropertiesInOrderItem.length > 0) {
@@ -387,8 +426,10 @@ const validateOrderReqBodyMiddleware = async (
       }
 
       // Check for unrecognized properties in element of orderItems array
-      const unrecognizedPropertiesInOrderItem = Object.keys(orderItem).filter(
-        (property) => !requiredProperties.includes(property)
+      const unrecognizedPropertiesInOrderItem = findUnrecognized(
+        req.body,
+        allowedOrderItemProperties,
+        []
       );
 
       if (unrecognizedPropertiesInOrderItem.length > 0) {
