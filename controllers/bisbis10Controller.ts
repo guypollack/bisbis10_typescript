@@ -880,7 +880,6 @@ router.delete(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-
       const dishIndex: number = req.body.dishIndex;
 
       const getDishesQuery: QueryConfig = {
