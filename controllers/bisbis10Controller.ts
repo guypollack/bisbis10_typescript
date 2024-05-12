@@ -11,17 +11,15 @@ const validateIdParamMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { id } = req.params;
-
-  const nonDigitRegex = new RegExp(/\D/);
-
-  if (id === "0" || nonDigitRegex.test(id)) {
-    return res
-      .status(400)
-      .send("Bad Request. Restaurant id must be a positive integer");
-  }
-
   try {
+    const { id } = req.params;
+
+    const nonDigitRegex = new RegExp(/\D/);
+
+    if (id === "0" || nonDigitRegex.test(id)) {
+      return res.status(400).send("Bad Request. id must be a positive integer");
+    }
+
     const checkExistenceResponse = await client.query(
       "SELECT * FROM restaurants WHERE id = $1",
       [id]
@@ -141,25 +139,25 @@ const validateIdInReqBodyMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { restaurantId } = req.body;
-
-  if (restaurantId === undefined) {
-    return res
-      .status(400)
-      .send("Bad Request. Required properties are missing: restaurantId");
-  }
-
-  if (typeof restaurantId !== "number") {
-    return res.status(400).send("Bad Request. restaurantId must be a number");
-  }
-
-  if (!Number.isInteger(restaurantId) || restaurantId < 1) {
-    return res
-      .status(400)
-      .send("Bad Request. restaurantId must be a positive integer");
-  }
-
   try {
+    const { restaurantId } = req.body;
+
+    if (restaurantId === undefined) {
+      return res
+        .status(400)
+        .send("Bad Request. Required properties are missing: restaurantId");
+    }
+
+    if (typeof restaurantId !== "number") {
+      return res.status(400).send("Bad Request. restaurantId must be a number");
+    }
+
+    if (!Number.isInteger(restaurantId) || restaurantId < 1) {
+      return res
+        .status(400)
+        .send("Bad Request. restaurantId must be a positive integer");
+    }
+
     const checkExistenceResponse = await client.query(
       "SELECT * FROM restaurants WHERE id = $1",
       [restaurantId]
@@ -275,19 +273,19 @@ const validateDishIdParamMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { id, dishId } = req.params;
-
-  const nonDigitRegex = new RegExp(/\D/);
-
-  if (dishId === "0" || nonDigitRegex.test(dishId)) {
-    {
-      return res
-        .status(400)
-        .send("Bad Request. dishId must be a positive integer");
-    }
-  }
-
   try {
+    const { id, dishId } = req.params;
+
+    const nonDigitRegex = new RegExp(/\D/);
+
+    if (dishId === "0" || nonDigitRegex.test(dishId)) {
+      {
+        return res
+          .status(400)
+          .send("Bad Request. dishId must be a positive integer");
+      }
+    }
+
     const getDishesQuery: QueryConfig = {
       text: `
         SELECT dishes
@@ -296,6 +294,7 @@ const validateDishIdParamMiddleware = async (
         ;`,
       values: [id],
     };
+
     const result: QueryResult<Restaurant> = await client.query(getDishesQuery);
     const dishes = result.rows[0].dishes;
 
@@ -425,9 +424,9 @@ const validateOrderDishesExistenceMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { restaurantId, orderItems }: Order = req.body;
-
   try {
+    const { restaurantId, orderItems }: Order = req.body;
+
     const getDishesQuery: QueryConfig = {
       text: `
         SELECT dishes
@@ -509,9 +508,9 @@ router.get(
   "/restaurants/:id",
   [validateIdParamMiddleware],
   async (req: Request, res: Response) => {
-    const { id } = req.params;
-
     try {
+      const { id } = req.params;
+
       const query: QueryConfig = {
         text: `
           SELECT id::VARCHAR, name, ROUND("averageRating"::numeric, 2) as "averageRating", "isKosher", cuisines, dishes
@@ -535,13 +534,13 @@ router.post(
   "/restaurants",
   [validateRestaurantReqBodyMiddleware],
   async (req: Request, res: Response) => {
-    const {
-      name,
-      isKosher,
-      cuisines,
-    }: Pick<Restaurant, "name" | "isKosher" | "cuisines"> = req.body;
-
     try {
+      const {
+        name,
+        isKosher,
+        cuisines,
+      }: Pick<Restaurant, "name" | "isKosher" | "cuisines"> = req.body;
+
       const query: QueryConfig = {
         text: `
           INSERT INTO restaurants (name, "isKosher", cuisines)
@@ -565,32 +564,32 @@ router.put(
   "/restaurants/:id",
   [validateIdParamMiddleware, validateRestaurantReqBodyMiddleware],
   async (req: Request, res: Response) => {
-    const { id } = req.params;
-
-    const allowedProperties = ["name", "isKosher", "cuisines"];
-
-    if (
-      allowedProperties.every((property) => req.body[property] === undefined)
-    ) {
-      return res.status(200).send();
-    }
-
-    const columnsToUpdate = allowedProperties.filter((property) =>
-      Object.keys(req.body).includes(property)
-    );
-
-    const setClauseComponents: string[] = [];
-    const setClauseParameters: Pick<
-      Restaurant,
-      "name" | "isKosher" | "cuisines"
-    >[] = [];
-
-    columnsToUpdate.forEach((columnName, index) => {
-      setClauseComponents.push(`"${columnName}" = $${index + 2}`);
-      setClauseParameters.push(req.body[columnName]);
-    });
-
     try {
+      const { id } = req.params;
+
+      const allowedProperties = ["name", "isKosher", "cuisines"];
+
+      if (
+        allowedProperties.every((property) => req.body[property] === undefined)
+      ) {
+        return res.status(200).send();
+      }
+
+      const columnsToUpdate = allowedProperties.filter((property) =>
+        Object.keys(req.body).includes(property)
+      );
+
+      const setClauseComponents: string[] = [];
+      const setClauseParameters: Pick<
+        Restaurant,
+        "name" | "isKosher" | "cuisines"
+      >[] = [];
+
+      columnsToUpdate.forEach((columnName, index) => {
+        setClauseComponents.push(`"${columnName}" = $${index + 2}`);
+        setClauseParameters.push(req.body[columnName]);
+      });
+
       const query: QueryConfig = {
         text: `
           UPDATE restaurants
@@ -615,9 +614,9 @@ router.delete(
   "/restaurants/:id",
   [validateIdParamMiddleware],
   async (req: Request, res: Response) => {
-    const { id } = req.params;
-
     try {
+      const { id } = req.params;
+
       const deleteRatingsQuery: QueryConfig = {
         text: `DELETE FROM ratings WHERE "restaurantId" = $1`,
         values: [id],
@@ -653,15 +652,15 @@ router.post(
   "/ratings",
   [validateIdInReqBodyMiddleware],
   async (req: Request, res: Response) => {
-    const { restaurantId, rating } = req.body;
-
-    if (typeof rating !== "number" || rating < 0 || rating > 5) {
-      return res
-        .status(400)
-        .send("Bad Request. rating must be a number between 0 and 5");
-    }
-
     try {
+      const { restaurantId, rating } = req.body;
+
+      if (typeof rating !== "number" || rating < 0 || rating > 5) {
+        return res
+          .status(400)
+          .send("Bad Request. rating must be a number between 0 and 5");
+      }
+
       const insertRatingQuery: QueryConfig = {
         text: `
           INSERT INTO ratings ("restaurantId", rating)
@@ -688,13 +687,14 @@ router.post(
       await client.query(insertRatingQuery);
       await client.query(updateAverageRatingQuery);
       await client.query("COMMIT");
+
+      return res.status(200).send();
     } catch (err) {
       await client.query("ROLLBACK");
       return res
         .status(500)
         .send("Internal Server Error. Unable to add new rating");
     }
-    return res.status(200).send();
   }
 );
 
@@ -706,9 +706,9 @@ router.post(
     validateOrderDishesExistenceMiddleware,
   ],
   async (req: Request, res: Response) => {
-    const { restaurantId, orderItems }: Order = req.body;
-
     try {
+      const { restaurantId, orderItems }: Order = req.body;
+
       const combinedOrderItems: OrderItem[] = orderItems.reduce(
         (accumulator: OrderItem[], current: OrderItem) => {
           const existingItemIndex = accumulator.findIndex(
@@ -748,15 +748,15 @@ router.post(
   "/restaurants/:id/dishes",
   [validateIdParamMiddleware, validateDishReqBodyMiddleware],
   async (req: Request, res: Response) => {
-    const { id } = req.params;
-
-    const {
-      name,
-      description,
-      price,
-    }: Pick<Dish, "name" | "description" | "price"> = req.body;
-
     try {
+      const { id } = req.params;
+
+      const {
+        name,
+        description,
+        price,
+      }: Pick<Dish, "name" | "description" | "price"> = req.body;
+
       const getDishesQuery: QueryConfig = {
         text: `
           SELECT dishes, "nextDishId"
@@ -808,32 +808,32 @@ router.put(
     validateDishIdParamMiddleware,
   ],
   async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const dishIndex: number = req.body.dishIndex;
-
-    const allowedProperties: (keyof Omit<Dish, "id">)[] = [
-      "name",
-      "description",
-      "price",
-    ];
-
-    if (
-      allowedProperties.every((property) => req.body[property] === undefined)
-    ) {
-      return res.status(200).send();
-    }
-
-    const updatedDishProperties: Partial<Omit<Dish, "id">> = allowedProperties
-      .filter((property) => Object.keys(req.body).includes(property))
-      .reduce(
-        (accumulator, current) => ({
-          ...accumulator,
-          [current]: req.body[current],
-        }),
-        {}
-      );
-
     try {
+      const { id } = req.params;
+      const dishIndex: number = req.body.dishIndex;
+
+      const allowedProperties: (keyof Omit<Dish, "id">)[] = [
+        "name",
+        "description",
+        "price",
+      ];
+
+      if (
+        allowedProperties.every((property) => req.body[property] === undefined)
+      ) {
+        return res.status(200).send();
+      }
+
+      const updatedDishProperties: Partial<Omit<Dish, "id">> = allowedProperties
+        .filter((property) => Object.keys(req.body).includes(property))
+        .reduce(
+          (accumulator, current) => ({
+            ...accumulator,
+            [current]: req.body[current],
+          }),
+          {}
+        );
+
       const getDishesQuery: QueryConfig = {
         text: `
           SELECT dishes
@@ -878,10 +878,11 @@ router.delete(
   "/restaurants/:id/dishes/:dishId",
   [validateIdParamMiddleware, validateDishIdParamMiddleware],
   async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const dishIndex: number = req.body.dishIndex;
-
     try {
+      const { id } = req.params;
+
+      const dishIndex: number = req.body.dishIndex;
+
       const getDishesQuery: QueryConfig = {
         text: `
           SELECT dishes
@@ -922,9 +923,9 @@ router.get(
   "/restaurants/:id/dishes",
   [validateIdParamMiddleware],
   async (req: Request, res: Response) => {
-    const { id } = req.params;
-
     try {
+      const { id } = req.params;
+
       const query: QueryConfig = {
         text: `
           SELECT dishes
