@@ -599,6 +599,11 @@ router.delete(
         values: [id],
       };
 
+      const deleteOrdersQuery: QueryConfig = {
+        text: `DELETE FROM orders WHERE "restaurantId" = $1`,
+        values: [id],
+      };
+
       const deleteRestaurantQuery: QueryConfig = {
         text: "DELETE FROM restaurants WHERE id = $1",
         values: [id],
@@ -606,6 +611,7 @@ router.delete(
 
       await client.query("BEGIN");
       await client.query(deleteRatingsQuery);
+      await client.query(deleteOrdersQuery);
       await client.query(deleteRestaurantQuery);
       await client.query("COMMIT");
 
