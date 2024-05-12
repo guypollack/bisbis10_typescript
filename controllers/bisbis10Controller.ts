@@ -800,7 +800,6 @@ router.post(
       const result: QueryResult<Pick<Restaurant, "dishes" | "nextDishId">> =
         await client.query(getDishesQuery);
       const dishes = result.rows[0].dishes;
-      const currentDishes = dishes.slice();
 
       const nextDishId = result.rows[0].nextDishId;
       const nextIdString = nextDishId.toString();
@@ -818,7 +817,7 @@ router.post(
           SET dishes = $1, "nextDishId" = $2
           WHERE id = $3
           ;`,
-        values: [[...currentDishes, newDish], nextDishId + 1, id],
+        values: [[...dishes, newDish], nextDishId + 1, id],
       };
 
       await client.query(addDishQuery);
