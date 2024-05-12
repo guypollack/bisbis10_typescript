@@ -32,7 +32,9 @@ const validateIdParamMiddleware = async (
         .status(404)
         .send("The restaurant with the specified id was not found");
     }
-  } catch (err) {}
+  } catch (err) {
+    return res.status(500).send("Internal Server Error. Unable to validate id");
+  }
 
   next();
 };
@@ -168,7 +170,11 @@ const validateIdInReqBodyMiddleware = async (
         .status(404)
         .send("The restaurant with the specified restaurantId was not found");
     }
-  } catch (err) {}
+  } catch (err) {
+    return res
+      .status(500)
+      .send("Internal Server Error. Unable to validate restaurantId");
+  }
 
   next();
 };
@@ -304,7 +310,13 @@ const validateDishIdParamMiddleware = async (
     } else {
       req.body.dishIndex = dishIndex;
     }
-  } catch (err) {}
+  } catch (err) {
+    return res
+      .status(500)
+      .send(
+        "Internal Server Error. Unable to check if restaurant menu contains the specified dish"
+      );
+  }
 
   next();
 };
