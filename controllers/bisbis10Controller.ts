@@ -16,6 +16,11 @@ const validateIdParamMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
+  /*
+    Checks that :id, e.g. in GET /restaurants/:id is correctly formatted
+    and that a restaurant with that id exists in the DB.
+  */
+
   try {
     const { id } = req.params;
 
@@ -47,6 +52,12 @@ const validateRestaurantReqBodyMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
+  /*
+    Checks that only "name", "isKosher" and "cuisines" properties are in req.body
+    and have correct types.
+    If request method is POST, checks that ALL these properties are present.
+  */
+
   try {
     const {
       name,
@@ -148,6 +159,11 @@ const validateIdInReqBodyMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
+  /*
+    Checks that "restaurantId" property is in req.body and has correct type/format,
+    and that a restaurant with that id exists in the DB.
+  */
+
   try {
     const { restaurantId } = req.body;
 
@@ -191,6 +207,13 @@ const validateDishReqBodyMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
+  /*
+    Checks that only "name", "description" and "price" properties are in req.body
+    and have correct types.
+    
+    If request method is POST, checks that ALL these properties are present.
+  */
+
   try {
     const {
       name,
@@ -285,6 +308,16 @@ const validateDishIdParamMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
+  /*
+    Checks that :dishId, e.g. in PUT /restaurants/:id/dishes/:dishId is correctly formatted
+    and that a dish with the specified dishId exists 
+    in the dishes array of the DB record associated with 
+    the restaurant with the specified id.
+
+    If validated, adds the array of restaurant dishes 
+    and the array index of the specified dish to req.body to be used in endpoint logic.
+  */
+
   try {
     const { id, dishId } = req.params;
 
@@ -338,6 +371,13 @@ const validateOrderReqBodyMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
+  /*
+    Checks that both "restaurantId" and "orderItems" properties are in req.body
+    and have correct types, and that there are no other properties present.
+    
+    Includes checking types of each object within "orderItems" array.
+  */
+
   try {
     const orderItems: OrderItem[] = req.body.orderItems;
 
@@ -489,6 +529,12 @@ const validateOrderDishesExistenceMiddleware = async (
   res: Response,
   next: NextFunction
 ) => {
+  /*
+    Checks that every dishId in req.body.orderItems
+    exists in the dishes array of the DB record associated with 
+    the restaurant with the specified id.
+  */
+
   try {
     const { restaurantId, orderItems }: Order = req.body;
 
