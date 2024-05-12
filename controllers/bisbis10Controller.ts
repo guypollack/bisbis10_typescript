@@ -231,17 +231,10 @@ const validateDishReqBodyMiddleware = async (
     );
 
     if (forbiddenPropertiesInRequest.length > 0) {
-      const requestType =
-        req.method === "POST"
-          ? "creation request"
-          : req.method === "PUT"
-          ? "update request"
-          : "request";
-
       return res
         .status(422)
         .send(
-          `Unprocessable Entity. The following properties cannot be included in the ${requestType}: ${forbiddenPropertiesInRequest.join(
+          `Unprocessable Entity. The following properties cannot be included in the request: ${forbiddenPropertiesInRequest.join(
             ", "
           )}`
         );
