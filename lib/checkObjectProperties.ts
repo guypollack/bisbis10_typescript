@@ -1,28 +1,28 @@
 export const findMissing = (
-  reqBody: Record<string, any>,
+  obj: Record<string, any>,
   allowedProperties: string[]
 ): string[] => {
   return allowedProperties.filter(
     (property) =>
-      reqBody[property] === undefined
+      obj[property] === undefined
   );
 };
 
 export const findForbidden = (
-  reqBody: Record<string, any>,
+  obj: Record<string, any>,
   forbiddenProperties: string[]
 ): string[] => {
   return forbiddenProperties.filter((property) =>
-    Object.keys(reqBody).includes(property)
+    Object.keys(obj).includes(property)
   );
 };
 
 export const findUnrecognized = (
-  reqBody: Record<string, any>,
+  obj: Record<string, any>,
   allowedProperties: string[],
   forbiddenProperties: string[]
 ): string[] => {
-  return Object.keys(reqBody).filter(
+  return Object.keys(obj).filter(
     (property) =>
       !allowedProperties.includes(property) &&
       !forbiddenProperties.includes(property)
