@@ -510,7 +510,7 @@ router.get(
       };
       const result: QueryResult<Restaurant> = await client.query(query);
 
-      return res.status(200).send(result.rows);
+      return res.status(200).send(result.rows[0]);
     } catch (err) {}
   }
 );
