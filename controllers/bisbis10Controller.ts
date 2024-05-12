@@ -304,7 +304,7 @@ const validateDishIdParamMiddleware = async (
       return res
         .status(404)
         .send(
-          "The dish with the specified dishId was not found at the restaurant with the specified id"
+          `A dish with id ${dishId} was not found in the specified restaurant's menu`
         );
     } else {
       req.body.dishIndex = dishIndex;
