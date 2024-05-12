@@ -7,7 +7,7 @@ import {
   findForbidden,
   findMissing,
   findUnrecognized,
-} from "../lib/analyzeRequestBody";
+} from "../lib/checkObjectProperties";
 
 const router = Router();
 
