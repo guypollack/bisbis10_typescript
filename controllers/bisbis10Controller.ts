@@ -112,8 +112,14 @@ const validateRestaurantReqBodyMiddleware = async (
     }
 
     // Check that all data types of columns to be updated are correct
-    if (name !== undefined && typeof name !== "string") {
-      return res.status(400).send("Bad Request. name must be a string");
+    if (
+      name !== undefined &&
+      
+      (typeof name !== "string" || name.trim().length === 0)
+    ) {
+      return res
+        .status(400)
+        .send("Bad Request. name must be a non-empty string");
     }
 
     if (isKosher !== undefined && typeof isKosher !== "boolean") {
@@ -122,14 +128,15 @@ const validateRestaurantReqBodyMiddleware = async (
 
     if (
       cuisines !== undefined &&
-      !(
-        Array.isArray(cuisines) &&
-        cuisines.every((elem) => typeof elem === "string")
-      )
+      (!Array.isArray(cuisines) ||
+        cuisines.some(
+          (cuisine) =>
+            typeof cuisine !== "string" || cuisine.trim().length === 0
+        ))
     ) {
       return res
         .status(400)
-        .send("Bad Request. cuisines must be an array of strings");
+        .send("Bad Request. cuisines must be an array of non-empty strings");
     }
   } catch (err) {
     return res
@@ -258,8 +265,13 @@ const validateDishReqBodyMiddleware = async (
     }
 
     // Check that all data types of dish properties are correct
-    if (name !== undefined && typeof name !== "string") {
-      return res.status(400).send("Bad Request. name must be a string");
+    if (
+      name !== undefined &&
+      (typeof name !== "string" || name.trim().length === 0)
+    ) {
+      return res
+        .status(400)
+        .send("Bad Request. name must be a non-empty string");
     }
 
     if (description !== undefined && typeof description !== "string") {
