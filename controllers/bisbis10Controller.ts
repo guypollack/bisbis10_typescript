@@ -780,7 +780,7 @@ router.post(
         price: roundToDp(price, 2),
       };
 
-      const updateDishesQuery: QueryConfig = {
+      const addNewDishQuery: QueryConfig = {
         text: `
           UPDATE restaurants
           SET dishes = $1, "nextDishId" = $2
@@ -789,14 +789,14 @@ router.post(
         values: [[...currentDishes, newDish], nextDishId + 1, id],
       };
 
-      await client.query(updateDishesQuery);
+      await client.query(addNewDishQuery);
+
+      return res.status(201).send();
     } catch (err) {
       return res
         .status(500)
         .send("Internal Server Error. Unable to add new dish");
     }
-
-    return res.status(201).send();
   }
 );
 
@@ -898,7 +898,7 @@ router.delete(
       const updatedDishes = dishes.slice();
       updatedDishes.splice(dishIndex, 1);
 
-      const updateDishesQuery: QueryConfig = {
+      const deleteDishQuery: QueryConfig = {
         text: `
           UPDATE restaurants
           SET dishes = $1
@@ -907,14 +907,14 @@ router.delete(
         values: [updatedDishes, id],
       };
 
-      await client.query(updateDishesQuery);
+      await client.query(deleteDishQuery);
+
+      return res.status(204).send();
     } catch (err) {
       return res
         .status(500)
         .send("Internal Server Error. Unable to delete dish");
     }
-
-    return res.status(204).send();
   }
 );
 
