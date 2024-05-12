@@ -55,6 +55,7 @@ const validateRestaurantReqBodyMiddleware = async (
   /*
     Checks that only "name", "isKosher" and "cuisines" properties are in req.body
     and have correct types.
+    
     If request method is POST, checks that ALL these properties are present.
   */
 
@@ -314,7 +315,7 @@ const validateDishIdParamMiddleware = async (
     in the dishes array of the DB record associated with 
     the restaurant with the specified id.
 
-    If validated, adds the array of restaurant dishes 
+    If checks pass, adds the array of restaurant dishes 
     and the array index of the specified dish to req.body to be used in endpoint logic.
   */
 
@@ -530,9 +531,9 @@ const validateOrderDishesExistenceMiddleware = async (
   next: NextFunction
 ) => {
   /*
-    Checks that every dishId in req.body.orderItems
-    exists in the dishes array of the DB record associated with 
-    the restaurant with the specified id.
+    Checks that the dishes array of the DB record associated with 
+    the restaurant with the specified id has every 
+    dishId in req.body.orderItems
   */
 
   try {
