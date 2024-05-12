@@ -842,7 +842,14 @@ router.put(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const dishIndex: number = req.body.dishIndex;
+
+      const {
+        restaurantDishes,
+        dishIndex,
+      }: {
+        restaurantDishes: Dish[];
+        dishIndex: number;
+      } = req.body;
 
       const allowedProperties: (keyof Omit<Dish, "id">)[] = [
         "name",
@@ -866,24 +873,10 @@ router.put(
           {}
         );
 
-      const getDishesQuery: QueryConfig = {
-        text: `
-          SELECT dishes
-          FROM restaurants
-          WHERE id = $1
-          ;`,
-        values: [id],
-      };
-
-      const getDishesQueryResult: QueryResult<Pick<Restaurant, "dishes">> =
-        await client.query(getDishesQuery);
-
-      const dishes = getDishesQueryResult.rows[0].dishes;
-
-      const dishToUpdate = dishes[dishIndex];
+      const dishToUpdate = restaurantDishes[dishIndex];
       const updatedDish = { ...dishToUpdate, ...updatedDishProperties };
 
-      const updatedDishes = dishes.slice();
+      const updatedDishes = restaurantDishes.slice();
       updatedDishes.splice(dishIndex, 1, updatedDish);
 
       const updateDishesQuery: QueryConfig = {
@@ -912,22 +905,15 @@ router.delete(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const dishIndex: number = req.body.dishIndex;
+      const {
+        restaurantDishes,
+        dishIndex,
+      }: {
+        restaurantDishes: Dish[];
+        dishIndex: number;
+      } = req.body;
 
-      const getDishesQuery: QueryConfig = {
-        text: `
-          SELECT dishes
-          FROM restaurants
-          WHERE id = $1
-          ;`,
-        values: [id],
-      };
-      const result: QueryResult<Restaurant> = await client.query(
-        getDishesQuery
-      );
-      const dishes = result.rows[0].dishes;
-
-      const updatedDishes = dishes.slice();
+      const updatedDishes = restaurantDishes.slice();
       updatedDishes.splice(dishIndex, 1);
 
       const deleteDishQuery: QueryConfig = {
