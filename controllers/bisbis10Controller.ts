@@ -858,7 +858,7 @@ router.post(
         text: `
             INSERT INTO orders ("restaurantId", "orderItems")
             VALUES ($1, $2)
-            RETURNING id
+            RETURNING "orderId"
             ;`,
         values: [restaurantId, combinedOrderItems],
       };

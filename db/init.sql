@@ -31,7 +31,7 @@ INSERT INTO ratings ("restaurantId", rating)
 VALUES (1, 4.83);
 
 CREATE TABLE orders (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  "orderId" UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   "restaurantId" INTEGER NOT NULL REFERENCES restaurants(id),
   "orderItems" JSON[] NOT NULL
 )
