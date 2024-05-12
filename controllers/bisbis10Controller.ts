@@ -779,6 +779,12 @@ router.post(
     try {
       const { restaurantId, rating } = req.body;
 
+      if (typeof rating === "undefined") {
+        return res
+          .status(400)
+          .send("Bad Request. Required properties are missing: rating");
+      }
+
       if (typeof rating !== "number" || rating < 0 || rating > 5) {
         return res
           .status(400)
