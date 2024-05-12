@@ -597,7 +597,7 @@ router.get("/restaurants", async (req: Request, res: Response) => {
     if (cuisine) {
       getRestaurantsQuery = {
         text: `
-          SELECT id::VARCHAR, name, ROUND("averageRating"::numeric, 2) AS "averageRating", "isKosher", cuisines
+          SELECT id::VARCHAR, name, ROUND("averageRating"::NUMERIC, 2)::FLOAT AS "averageRating", "isKosher", cuisines
           FROM restaurants
           WHERE $1 = ANY(cuisines)
           ORDER BY id ASC
@@ -607,7 +607,7 @@ router.get("/restaurants", async (req: Request, res: Response) => {
     } else {
       getRestaurantsQuery = {
         text: `
-          SELECT id::VARCHAR, name, ROUND("averageRating"::numeric, 2) AS "averageRating", "isKosher", cuisines
+          SELECT id::VARCHAR, name, ROUND("averageRating"::NUMERIC, 2)::FLOAT AS "averageRating", "isKosher", cuisines
           FROM restaurants
           ORDER BY id ASC
           ;`,
@@ -635,7 +635,7 @@ router.get(
 
       const getRestaurantQuery: QueryConfig = {
         text: `
-          SELECT id::VARCHAR, name, ROUND("averageRating"::numeric, 2) as "averageRating", "isKosher", cuisines, dishes
+          SELECT id::VARCHAR, name, ROUND("averageRating"::NUMERIC, 2)::FLOAT as "averageRating", "isKosher", cuisines, dishes
           FROM restaurants
           WHERE id = $1
           ;`,
