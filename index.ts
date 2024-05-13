@@ -18,7 +18,7 @@ app.use("/ratings", ratingsRoutes);
 app.use("/order", orderRoutes);
 
 app.listen(port, () => {
-  console.log(`Server is On at http://localhost:${port}`);
+  console.log(`Server is on at http://localhost:${port}`);
 });
 
 process.on("SIGINT", () => {
