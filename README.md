@@ -105,9 +105,11 @@ Make sure that you have cloned the project repository to your local machine.
 
 This command will start the project and will log a message in the terminal with the format:
 <br>
+<br>
 `Server is on at http://<hostname>:<port>`
 <br>
-e.g. `Server is On at http://localhost:8000`
+<br>
+e.g. `Server is on at http://localhost:8000`
 
 Take note of the `hostname` and `port` in order to access the APIs.
 
