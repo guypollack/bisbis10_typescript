@@ -142,6 +142,12 @@ export const validateRestaurantReqBodyMiddleware = async (
         .status(400)
         .send("Bad Request. cuisines must be an array of non-empty strings");
     }
+
+    if (cuisines.length === 0) {
+      return res
+        .status(400)
+        .send("Bad Request. cuisines must contain at least one value");
+    }
   } catch (err) {
     return res
       .status(500)
