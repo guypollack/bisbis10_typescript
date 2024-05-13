@@ -13,7 +13,6 @@ const port = process.env.PORT || 8000;
 app.use(express.json());
 
 app.use("/", routes);
-app.use("/demo", demoRoutes);
 
 app.listen(port, () => {
   console.log(`Server is On at http://localhost:${port}`);
