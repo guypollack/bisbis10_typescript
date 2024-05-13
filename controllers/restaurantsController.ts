@@ -17,7 +17,7 @@ const router = Router();
 /**
  * GET /restaurants
  * or
- * GET /restaurants?cuisine=Mexican
+ * GET /restaurants?cuisine={cuisine}, e.g. GET /restaurants?cuisine=Mexican
  * Gets a list of all restaurants
  * Optional query parameter cuisine can be used to filter by cuisine
  */
