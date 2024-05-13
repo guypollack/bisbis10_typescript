@@ -119,7 +119,7 @@ Once the project is running, you can access the APIs provided by the system. By 
 
 `http://<hostname>:<port>/<endpoint>`
 
-Replace `<hostname>` and `<port>` with the actual hostname and port where the application is running, and `<endpoint>` with the specific endpoint you wish to use from the tables above.
+Replace `<hostname>` and `<port>` with the actual `hostname` and `port` where the application is running, and `<endpoint>` with the specific endpoint you wish to use from the tables above.
 
 You can use tools like cURL, Postman, or your web browser to interact with these APIs.
 
@@ -127,4 +127,6 @@ You can use tools like cURL, Postman, or your web browser to interact with these
 
 1. Go to the terminal where you ran the command `docker compose up -d`.
 2. Run the following command to stop the container:
-   `docker compose down`
+   ```
+   docker compose down
+   ```
