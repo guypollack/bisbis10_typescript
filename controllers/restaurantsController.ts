@@ -138,12 +138,6 @@ router.put(
 
       const allowedProperties = ["name", "isKosher", "cuisines"];
 
-      if (
-        allowedProperties.every((property) => req.body[property] === undefined)
-      ) {
-        return res.status(200).send();
-      }
-
       const columnsToUpdate = allowedProperties.filter((property) =>
         Object.keys(req.body).includes(property)
       );
