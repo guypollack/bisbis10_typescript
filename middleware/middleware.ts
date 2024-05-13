@@ -62,10 +62,6 @@ export const validateRestaurantReqBodyMiddleware = async (
       cuisines,
     }: Pick<Restaurant, "name" | "isKosher" | "cuisines"> = req.body;
 
-    if (req.method === "PUT" && Object.keys(req.body).length === 0) {
-      return res.status(200).send();
-    }
-
     const allowedProperties = ["name", "isKosher", "cuisines"];
     const forbiddenProperties = ["id", "averageRating", "dishes", "nextDishId"];
 
@@ -227,10 +223,6 @@ export const validateDishReqBodyMiddleware = async (
       description,
       price,
     }: Pick<Dish, "name" | "description" | "price"> = req.body;
-
-    if (req.method === "PUT" && Object.keys(req.body).length === 0) {
-      return res.status(200).send();
-    }
 
     const allowedProperties = ["name", "description", "price"];
     const forbiddenProperties = ["id"];
