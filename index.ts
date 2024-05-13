@@ -1,7 +1,8 @@
 import express, { Application } from "express";
 import dotenv from "dotenv";
-import demoRoutes from "./controllers/demoController";
-import routes from "./controllers/bisbis10Controller";
+import restaurantsRoutes from "./controllers/restaurantsController";
+import ratingsRoutes from "./controllers/ratingsController";
+import orderRoutes from "./controllers/orderController";
 import client from "./db/db";
 
 //For env File
@@ -12,7 +13,9 @@ const port = process.env.PORT || 8000;
 
 app.use(express.json());
 
-app.use("/", routes);
+app.use("/restaurants", restaurantsRoutes);
+app.use("/ratings", ratingsRoutes);
+app.use("/order", orderRoutes);
 
 app.listen(port, () => {
   console.log(`Server is On at http://localhost:${port}`);
